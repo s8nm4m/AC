@@ -1,0 +1,85 @@
+P16 assembler v1.4.0 (Mar  6 2023)	lab01_sign.lst	Wed Mar 15 16:58:22 2023
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      004E 78
+
+Symbols
+Name                    Type      Value       Section
+line#60                 LABEL     0044 68     .text
+minusmone               LABEL     0010 16     .text
+minusmtwo               LABEL     001A 26     .text
+regular                 LABEL     002C 44     .text
+signalcheck             LABEL     0004 4      .text
+simetric                LABEL     0046 70     .text
+trade                   LABEL     0022 34     .text
+while                   LABEL     0034 52     .text
+while_end               LABEL     003E 62     .text
+
+Code listing
+   1           	; -----------------------------------------------------------------------------
+   2           	; Ficheiro:  lab01.S
+   3           	; Descricao: Codigo de suporte a realizacao da 1a atividade laboratorial de AC.
+   4           	; Autor:     Tiago M Dias (tiago.dias@isel.pt)
+   5           	; Data:      11-03-2022
+   6           	; -----------------------------------------------------------------------------
+   7           	
+   8           		; r0 guarda o valor da variavel M
+   9           		; r1 guarda o valor da variavel m
+  10           		; r2 guarda o valor da variavel p
+  11           		; r3 e utilizado para guardar valores temporariamente
+  12           	
+  13 0000 13 60	mov r3, #1
+  14 0002 03 24	push r3
+  15           	signalcheck:; caso algum numero seja negativo vai trocar-lhe o sinal
+  16 0004 03 60	    mov r3, #0
+  17 0006 80 B9	    cmp r0, r3
+  18 0008 03 54	    blt minusmone;  mone = M
+  19 000A 90 B9	    cmp r1, r3
+  20 000C 06 54	    blt minusmtwo;  mtwo = m
+  21 000E 09 58	    b trade
+  22           	
+  23           	minusmone:
+  24 0010 13 60	    mov r3, #1
+  25 0012 10 B0	    mvn r0, r0
+  26 0014 80 A0	    add r0, r0, #1
+  27 0016 03 24	    push r3 ; quando e negativo da push do valor 1
+  28 0018 F5 5B	    b signalcheck
+  29           	
+  30           	minusmtwo:
+  31 001A 13 60	    mov r3, #1
+  32 001C 91 B0	    mvn r1, r1
+  33 001E 91 A0	    add r1, r1, #1
+  34 0020 03 24	    push r3 ; quando é negativo dá push do valor 1
+  35           	
+  36           	trade:
+  37 0022 80 B8	    cmp r0, r1
+  38 0024 03 4C	    bcc regular
+  39 0026 80 D0	    eor r0, r0, r1
+  40 0028 81 D0	    eor r1, r0, r1
+  41 002A 80 D0	    eor r0, r0, r1
+  42           	
+  43           	regular:
+  44 002C 03 60	    mov r3, #0
+  45 002E 82 B1		mov r2, r3
+  46 0030 80 B9		cmp r0, r3
+  47 0032 05 40		beq while_end
+  48           	
+  49           	while:
+  50 0034 B0 B8		cmp r3, r1
+  51 0036 03 4C		bhs while_end
+  52 0038 22 80		add r2, r2, r0
+  53 003A 91 A8		sub r1, r1, #1
+  54 003C FB 5B		b while
+  55           	
+  56           	while_end:
+  57 003E 00 04	    pop r0
+  58 0040 80 B9	    cmp r0, r3
+  59 0042 01 44	    bne simetric
+  60 0044 FF 5B		b  .
+  61           	
+  62           	simetric:
+  63 0046 12 B1	    mvn r2, r2
+  64 0048 A2 A0	    add r2, r2, #1
+  65 004A 03 24	    push r3
+  66 004C F8 5B	    b while_end
