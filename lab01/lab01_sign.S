@@ -10,7 +10,8 @@
 	; r2 guarda o valor da variavel p
 	; r3 e utilizado para guardar valores temporariamente
 
-mov r3, #1
+mov r3, #0
+push r3
 push r3
 signalcheck:; caso algum numero seja negativo vai trocar o sinal
     mov r3, #0
@@ -42,25 +43,24 @@ trade:
 
 regular:
     mov r3, #0
-	mov r2, r3
-	cmp r0, r3
-	beq while_end
+    mov r2, r3
+    cmp r0, r3
+    beq while_end
 
 while:
-	cmp r3, r1
-	bhs while_end
-	add r2, r2, r0
-	sub r1, r1, #1
-	b while
+    cmp r3, r1
+    bhs while_end
+    add r2, r2, r0
+    sub r1, r1, #1
+    b while
 
 while_end:
     pop r0
     cmp r0, r3
     bne simetric
-	b  .
+    b  .
 
 simetric:
     mvn r2, r2
     add r2, r2, #1
-    push r3
     b while_end
