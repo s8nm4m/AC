@@ -1,0 +1,85 @@
+P16 assembler v1.4.0 (Mar  6 2023)	trab01.lst	Thu Mar 16 13:13:09 2023
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      003A 58
+
+Symbols
+Name                    Type      Value       Section
+ACHAR                   ABSOLUTE  0041 65     .text
+char2nat                LABEL     0000 0      .text
+char2nat_end            LABEL     0036 54     .text
+FCHAR                   ABSOLUTE  0046 70     .text
+NAN                     ABSOLUTE  FFFF 65535  .text
+NINECHAR                ABSOLUTE  0039 57     .text
+radix_if                LABEL     0028 40     .text
+SIXTEEN                 ABSOLUTE  0010 16     .text
+symbol_else_if          LABEL     0016 22     .text
+ZEROCHAR                ABSOLUTE  0030 48     .text
+
+Code listing
+   1           	; r0 = multiplicando
+   2           	; r1 = multiplicador
+   3           	
+   4           	;1) a) Esta implementação ocupa 8 bytes de memória, devido ao uso de 4 registos(R0..R3), sendo cada um de 2 bytes tendo em conta as caracteristicas do processor P16.
+   5           	;b) Enquanto grupo não concordamos com esta afirmação.
+   6           	;Como sabemos os registos em rotinas encontram-se divididos em 3 classes,
+   7           	;achamos que não seria preferivel a utilização do R4, pois ao contrário do R2,
+   8           	 ;este registo tem necessidade de armazenar o seu valor, 
+   9           	 ;tendo em conta o propósito da rotina multiply não faria sentido 
+  10           	 ;guardar o valor sendo que o que nos importa é o valor final.
+  11           	
+  12           	;2) a) O valor da constante NAN é FFFF=65535, porque em hexadecimal cada valor 
+  13           	;pode ser compreendido entre 0 e 15, onde 15=F. Neste caso o valor é positivo
+  14           	;por ser do tipo uint16_t, ou seja, um intiero sem sinal de 16 bits.
+  15           	
+  16           	;b) .equ NAN, FFFF ocupa 16 bits, ou seja, 1 registo.
+  17           	
+  18           	;c)
+  19           	
+  20          	.equ NAN, 0xFFFF
+  21          	.equ ZEROCHAR, '0'
+  22          	.equ NINECHAR, '9'
+  23          	.equ ACHAR, 'A'
+  24          	.equ FCHAR, 'F'
+  25          	.equ SIXTEEN, 16
+  26           	
+  27           	;r0 = symbol, r1 = radix, r2 = number
+  28           	;r3 temporary values
+  29           	
+  30           	char2nat:
+  31 0000 F2 6F	    mov r2, # NAN & 0xFF; number = NAN
+  32 0002 F2 7F	    movt r2, # NAN & 0xFF
+  33 0004 03 63	    mov r3, # ZEROCHAR
+  34 0006 30 B8	    cmp r3, r0 
+  35 0008 06 4C	    bhs symbol_else_if ; if(symbol < '0') -> symbol_else_if
+  36 000A 93 63	    mov r3, # NINECHAR
+  37 000C 80 B9	    cmp r0, r3
+  38 000E 03 4C	    bhs symbol_else_if ; if(symbol > '9') -> symbol_else_if
+  39 0010 03 63	    mov r3, # ZEROCHAR
+  40 0012 82 89	    sub r2, r0, r3 ; number = symbol - '0'
+  41 0014 09 58	    b radix_if
+  42           	
+  43           	symbol_else_if:
+  44 0016 13 64	    mov r3, # ACHAR
+  45 0018 80 B9	    cmp r0, r3
+  46 001A 06 4C	    bhs radix_if    ; if(symbol < 'A') -> radix_if
+  47 001C 63 64	    mov r3, # FCHAR
+  48 001E 30 B8	    cmp r3, r0
+  49 0020 03 4C	    bhs radix_if    ; if( symbol > 'F') -> radix_if
+  50 0022 13 64	    mov r3, # ACHAR
+  51 0024 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
+  52 0026 22 A5	    add r2, r2, #10 ; number = number + 10
+  53           	
+  54           	radix_if:
+  55 0028 03 61	    mov r3, # SIXTEEN
+  56 002A B0 B8	    cmp r3, r1
+  57 002C 04 4C	    bhs char2nat_end
+  58 002E A0 B8	    cmp r2, r1
+  59 0030 02 48	    blo char2nat_end
+  60 0032 F2 6F	    mov r2, # NAN & 0xFF
+  61 0034 F2 7F	    movt r2, # NAN & 0xFF
+  62           	
+  63           	char2nat_end:
+  64 0036 00 B1	    mov r0, r2
+  65 0038 0F B7	    mov pc, lr
