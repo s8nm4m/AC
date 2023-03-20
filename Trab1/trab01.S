@@ -15,9 +15,9 @@
 
 ;b) .equ NAN, FFFF ocupa 16 bits, ou seja, 1 registo.
 
-;c)
+;2 c)
 
-.equ NAN, 0xFF
+.equ NAN, 0xFFFF
 .equ ZEROCHAR, '0'
 .equ NINECHAR, '9'
 .equ ACHAR, 'A'
@@ -28,8 +28,8 @@
 ;r3 temporary values
 
 char2nat:
-    mov r2, # NAN ; number = NAN
-    movt r2, # NAN 
+    mov r2, # NAN & 0xFF; number = NAN
+    movt r2, # NAN & 0xFF
     mov r3, # ZEROCHAR
     cmp r0, r3 
     blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
@@ -69,62 +69,79 @@ radix_if2:
 char2nat_end:
     mov r0, r2
     mov pc, lr
+    
 
 ;3)
 
-;r0 = numeral[] , r1 = radix , r2 = number, r3 = error
-;r4 = idx , r5 = tmp , r6 temporario
+;r0 = &numeral[] , r1 = radix , r2 = number, r3 = error
+;r4 = idx , r5 = tmp , r6/r7 temporario
 .equ ZERO, 0
 .equ ONE, 1
 
 str2nat:
-    mov r2, # ZERO
-    mov r3, # ZERO
-    mov r4, # ZERO
+    push r4 ; guardar os valores de r4, r5, r6 e r7 para nao serem perdidos
+    push r5
+    push r6
+    push r7
+    mov r2, # ZERO & 0xFF; number = 0
+    movt r2, # ZERO & 0xFF
+    mov r3, # ZERO ; error = 0
+    mov r4, # ZERO ; idx = 0
 
 for_loop:
     mov r6, # ZERO
     cmp r3, r6
-    bne str2nat_end
-    ; falta segunda condicao de paragem do for
-    mov r6, r0
-    movt r6, r0
+    bne str2nat_end ; if( error != 0 ) -> str2nat_end
+    mov r6, # '\0'
+    ldr r7, [r0,r4]
+    cmp r7, r6
+    beq str2nat_end ; if( numeral[idx] == '\0' ) -> str2nat_end
+    mov r7, r0
     bl char2nat
-    mov r5, r0
-    mov r0, r6
-    movt r0, r6
-    mov r6, # NAN
-    movt r6, # NAN
-    cmp r6, r5
+    mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
+    mov r0, r7
+    mov r6, # NAN & 0xFF ; r6 = NAN
+    movt r6, # NAN & 0xFF
+    cmp r5, r6 
     bne for_else
-    mov r2, # NAN
-    movt r2, # NAN 
+    mov r2, # NAN & 0xFF
+    movt r2, # NAN & 0xFF
     mov r3, # ONE
     b for_loop
 
 for_else:
     mov r6, r0
-    movt r6, r0
-    mov r0, r2
+    push r2
+    push r3
     bl multiply
-    add r2, r0, r5
+    pop r3
+    pop r2
+    mov r7, r0
     mov r0, r6
-    movt r0, r6
+    add r2, r7, r5
     b for_loop
 
 str2nat_end:
+    pop r7
+    pop r6
+    pop r5
+    pop r4
     mov r0, r2
     mov pc, lr
 
-multiply :
+multiply: 
     mov r2, #0
-while :
+while:
     mov r3, #0
     cmp r3, r1
     bhs while_end
     add r2, r2, r0
     sub r1, r1, #1
     b while
-while_end :
+while_end:
     mov r0, r2
     mov pc, lr
+
+; 4)
+
+; 5)
