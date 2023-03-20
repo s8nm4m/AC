@@ -1,18 +1,20 @@
-P16 assembler v1.4.0 (Mar  6 2023)	.\trab01.lst	Mon Mar 20 09:28:40 2023
+P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Trab1\trab01.lst	Mon Mar 20 11:45:04 2023
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      003A 58
+0       .text           0000      003E 62
 
 Symbols
 Name                    Type      Value       Section
 ACHAR                   ABSOLUTE  0041 65     .text
 char2nat                LABEL     0000 0      .text
-char2nat_end            LABEL     0036 54     .text
+char2nat_end            LABEL     003A 58     .text
 FCHAR                   ABSOLUTE  0046 70     .text
-NAN                     ABSOLUTE  FFFF 65535  .text
+NAN                     ABSOLUTE  00FF 255    .text
 NINECHAR                ABSOLUTE  0039 57     .text
-radix_if                LABEL     0028 40     .text
+number_nan              LABEL     002E 46     .text
+radix_if1               LABEL     0028 40     .text
+radix_if2               LABEL     0034 52     .text
 SIXTEEN                 ABSOLUTE  0010 16     .text
 symbol_else_if          LABEL     0016 22     .text
 ZEROCHAR                ABSOLUTE  0030 48     .text
@@ -37,7 +39,7 @@ Code listing
   17           	
   18           	;c)
   19           	
-  20          	.equ NAN, 0xFFFF
+  20          	.equ NAN, 0xFF
   21          	.equ ZEROCHAR, '0'
   22          	.equ NINECHAR, '9'
   23          	.equ ACHAR, 'A'
@@ -48,38 +50,44 @@ Code listing
   28           	;r3 temporary values
   29           	
   30           	char2nat:
-  31 0000 F2 6F	    mov r2, # NAN & 0xFF; number = NAN
-  32 0002 F2 7F	    movt r2, # NAN & 0xFF
+  31 0000 F2 6F	    mov r2, # NAN ; number = NAN
+  32 0002 F2 7F	    movt r2, # NAN 
   33 0004 03 63	    mov r3, # ZEROCHAR
-  34 0006 30 B8	    cmp r3, r0 
-  35 0008 06 4C	    bhs symbol_else_if ; if(symbol < '0') -> symbol_else_if
+  34 0006 80 B9	    cmp r0, r3 
+  35 0008 06 48	    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
   36 000A 93 63	    mov r3, # NINECHAR
-  37 000C 80 B9	    cmp r0, r3
-  38 000E 03 4C	    bhs symbol_else_if ; if(symbol > '9') -> symbol_else_if
+  37 000C 30 B8	    cmp r3, r0
+  38 000E 03 48	    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
   39 0010 03 63	    mov r3, # ZEROCHAR
   40 0012 82 89	    sub r2, r0, r3 ; number = symbol - '0'
-  41 0014 09 58	    b radix_if
+  41 0014 09 58	    b radix_if1
   42           	
   43           	symbol_else_if:
   44 0016 13 64	    mov r3, # ACHAR
   45 0018 80 B9	    cmp r0, r3
-  46 001A 06 4C	    bhs radix_if    ; if(symbol < 'A') -> radix_if
+  46 001A 06 48	    blo radix_if1    ; if(symbol < 'A') -> radix_if
   47 001C 63 64	    mov r3, # FCHAR
   48 001E 30 B8	    cmp r3, r0
-  49 0020 03 4C	    bhs radix_if    ; if( symbol > 'F') -> radix_if
+  49 0020 03 48	    blo radix_if1    ; if( symbol > 'F') -> radix_if
   50 0022 13 64	    mov r3, # ACHAR
   51 0024 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
   52 0026 22 A5	    add r2, r2, #10 ; number = number + 10
   53           	
-  54           	radix_if:
+  54           	radix_if1:
   55 0028 03 61	    mov r3, # SIXTEEN
   56 002A B0 B8	    cmp r3, r1
-  57 002C 04 4C	    bhs char2nat_end
-  58 002E A0 B8	    cmp r2, r1
-  59 0030 02 48	    blo char2nat_end
-  60 0032 F2 6F	    mov r2, # NAN & 0xFF
-  61 0034 F2 7F	    movt r2, # NAN & 0xFF
-  62           	
-  63           	char2nat_end:
-  64 0036 00 B1	    mov r0, r2
-  65 0038 0F B7	    mov pc, lr
+  57 002C 03 4C	    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
+  58           	
+  59           	number_nan:
+  60 002E F2 6F	    mov r2, # NAN & 0xFF
+  61 0030 F2 7F	    movt r2, # NAN & 0xFF
+  62 0032 03 58	    b char2nat_end
+  63           	
+  64           	radix_if2:
+  65 0034 A0 B8	    cmp r2, r1
+  66 0036 01 48	    blo char2nat_end ; if(number < radix) -> char2nat_end
+  67 0038 FA 5B	    b number_nan
+  68           	
+  69           	char2nat_end:
+  70 003A 00 B1	    mov r0, r2
+  71 003C 0F B7	    mov pc, lr

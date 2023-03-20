@@ -17,7 +17,7 @@
 
 ;c)
 
-.equ NAN, 0xFFFF
+.equ NAN, 0xFF
 .equ ZEROCHAR, '0'
 .equ NINECHAR, '9'
 .equ ACHAR, 'A'
@@ -28,38 +28,103 @@
 ;r3 temporary values
 
 char2nat:
-    mov r2, # NAN & 0xFF; number = NAN
-    movt r2, # NAN & 0xFF
+    mov r2, # NAN ; number = NAN
+    movt r2, # NAN 
     mov r3, # ZEROCHAR
-    cmp r3, r0 
-    bhs symbol_else_if ; if(symbol < '0') -> symbol_else_if
+    cmp r0, r3 
+    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
     mov r3, # NINECHAR
-    cmp r0, r3
-    bhs symbol_else_if ; if(symbol > '9') -> symbol_else_if
+    cmp r3, r0
+    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
     mov r3, # ZEROCHAR
     sub r2, r0, r3 ; number = symbol - '0'
-    b radix_if
+    b radix_if1
 
 symbol_else_if:
     mov r3, # ACHAR
     cmp r0, r3
-    bhs radix_if    ; if(symbol < 'A') -> radix_if
+    blo radix_if1    ; if(symbol < 'A') -> radix_if
     mov r3, # FCHAR
     cmp r3, r0
-    bhs radix_if    ; if( symbol > 'F') -> radix_if
+    blo radix_if1    ; if( symbol > 'F') -> radix_if
     mov r3, # ACHAR
     sub r2, r0, r3 ; number = symbol - 'A'
     add r2, r2, #10 ; number = number + 10
 
-radix_if:
+radix_if1:
     mov r3, # SIXTEEN
     cmp r3, r1
-    bhs char2nat_end
-    cmp r2, r1
-    blo char2nat_end
+    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
+
+number_nan:
     mov r2, # NAN & 0xFF
     movt r2, # NAN & 0xFF
+    b char2nat_end
+
+radix_if2:
+    cmp r2, r1
+    blo char2nat_end ; if(number < radix) -> char2nat_end
+    b number_nan
 
 char2nat_end:
+    mov r0, r2
+    mov pc, lr
+
+;3)
+
+;r0 = numeral[] , r1 = radix , r2 = number, r3 = error
+;r4 = idx , r5 = tmp , r6 temporario
+.equ ZERO, 0
+.equ ONE, 1
+
+str2nat:
+    mov r2, # ZERO
+    mov r3, # ZERO
+    mov r4, # ZERO
+
+for_loop:
+    mov r6, # ZERO
+    cmp r3, r6
+    bne str2nat_end
+    ; falta segunda condicao de paragem do for
+    mov r6, r0
+    movt r6, r0
+    bl char2nat
+    mov r5, r0
+    mov r0, r6
+    movt r0, r6
+    mov r6, # NAN
+    movt r6, # NAN
+    cmp r6, r5
+    bne for_else
+    mov r2, # NAN
+    movt r2, # NAN 
+    mov r3, # ONE
+    b for_loop
+
+for_else:
+    mov r6, r0
+    movt r6, r0
+    mov r0, r2
+    bl multiply
+    add r2, r0, r5
+    mov r0, r6
+    movt r0, r6
+    b for_loop
+
+str2nat_end:
+    mov r0, r2
+    mov pc, lr
+
+multiply :
+    mov r2, #0
+while :
+    mov r3, #0
+    cmp r3, r1
+    bhs while_end
+    add r2, r2, r0
+    sub r1, r1, #1
+    b while
+while_end :
     mov r0, r2
     mov pc, lr
