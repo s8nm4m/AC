@@ -1,32 +1,49 @@
-P16 assembler v1.4.0 (Mar  6 2023)	d:\ISEL\2223\LEIC\s2\AC\Trab1\trab01.lst	Mon Mar 20 17:46:14 2023
+P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Trab1\trab01.lst	Tue Mar 21 17:35:56 2023
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      00A6 166
+0       .startup        0000      0012 18
+1       .text           0012      00A6 166
+2       .data           00B8      0017 23
+3       .bss            00D0      0001 1
+4       .stack          00D2      0040 64
 
 Symbols
 Name                    Type      Value       Section
-ACHAR                   ABSOLUTE  0041 65     .text
-char2nat                LABEL     0000 0      .text
-char2nat_end            LABEL     003A 58     .text
-FCHAR                   ABSOLUTE  0046 70     .text
-for_else                LABEL     0074 116    .text
-for_loop                LABEL     004E 78     .text
-multiply                LABEL     0094 148    .text
-NAN                     ABSOLUTE  FFFF 65535  .text
-NINECHAR                ABSOLUTE  0039 57     .text
-number_nan              LABEL     002E 46     .text
-ONE                     ABSOLUTE  0001 1      .text
-radix_if1               LABEL     0028 40     .text
-radix_if2               LABEL     0034 52     .text
-SIXTEEN                 ABSOLUTE  0010 16     .text
-str2nat                 LABEL     003E 62     .text
-str2nat_end             LABEL     0088 136    .text
-symbol_else_if          LABEL     0016 22     .text
-while                   LABEL     0096 150    .text
-while_end               LABEL     00A2 162    .text
-ZERO                    ABSOLUTE  0000 0      .text
-ZEROCHAR                ABSOLUTE  0030 48     .text
+_start                  LABEL     0004 4      .startup
+ACHAR                   ABSOLUTE  0041 65     .startup
+char2nat                LABEL     0012 18     .text
+char2nat_end            LABEL     004C 76     .text
+error                   LABEL     00D0 208    .bss
+FCHAR                   ABSOLUTE  0046 70     .startup
+for_else                LABEL     0086 134    .text
+for_loop                LABEL     0060 96     .text
+line#30                 LABEL     0002 2      .startup
+line#37                 LABEL     000C 12     .startup
+main                    LABEL     0012 18     .text
+main_addr               LABEL     0010 16     .startup
+multiply                LABEL     00A6 166    .text
+NAN                     LABEL     00B8 184    .data
+NINECHAR                ABSOLUTE  0039 57     .startup
+number_nan              LABEL     0040 64     .text
+ONE                     ABSOLUTE  0013 19     .text
+radix_if1               LABEL     003A 58     .text
+radix_if2               LABEL     0046 70     .text
+SIXTEEN                 ABSOLUTE  0010 16     .startup
+STACK_SIZE              ABSOLUTE  0040 64     .startup
+str2nat                 LABEL     0050 80     .text
+str2nat_end             LABEL     009A 154    .text
+symbol_else_if          LABEL     0028 40     .text
+tos                     LABEL     0112 274    .stack
+tos_addr                LABEL     000E 14     .startup
+tst_results             LABEL     00BA 186    .data
+tst_str0                LABEL     00C0 192    .data
+tst_str1                LABEL     00C6 198    .data
+tst_str2                LABEL     00CA 202    .data
+while                   LABEL     00A8 168    .text
+while_end               LABEL     00B4 180    .text
+ZERO                    ABSOLUTE  0012 18     .text
+ZEROCHAR                ABSOLUTE  0030 48     .startup
 
 Code listing
    1           	; r0 = multiplicando
@@ -48,131 +65,187 @@ Code listing
   17           	
   18           	;2 c)
   19           	
-  20          	.equ NAN, 0xFFFF
+  20           	;.equ NAN, 0xFFFF
   21          	.equ ZEROCHAR, '0'
   22          	.equ NINECHAR, '9'
   23          	.equ ACHAR, 'A'
   24          	.equ FCHAR, 'F'
   25          	.equ SIXTEEN, 16
-  26           	
-  27           	;r0 = symbol, r1 = radix, r2 = number
-  28           	;r3 temporary values
-  29           	
-  30           	char2nat:
-  31 0000 F2 6F	    mov r2, # NAN & 0xFF; number = NAN
-  32 0002 F2 7F	    movt r2, # NAN & 0xFF
-  33 0004 03 63	    mov r3, # ZEROCHAR
-  34 0006 80 B9	    cmp r0, r3 
-  35 0008 06 48	    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
-  36 000A 93 63	    mov r3, # NINECHAR
-  37 000C 30 B8	    cmp r3, r0
-  38 000E 03 48	    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
-  39 0010 03 63	    mov r3, # ZEROCHAR
-  40 0012 82 89	    sub r2, r0, r3 ; number = symbol - '0'
-  41 0014 09 58	    b radix_if1
-  42           	
-  43           	symbol_else_if:
-  44 0016 13 64	    mov r3, # ACHAR
-  45 0018 80 B9	    cmp r0, r3
-  46 001A 06 48	    blo radix_if1    ; if(symbol < 'A') -> radix_if
-  47 001C 63 64	    mov r3, # FCHAR
-  48 001E 30 B8	    cmp r3, r0
-  49 0020 03 48	    blo radix_if1    ; if( symbol > 'F') -> radix_if
-  50 0022 13 64	    mov r3, # ACHAR
-  51 0024 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
-  52 0026 22 A5	    add r2, r2, #10 ; number = number + 10
-  53           	
-  54           	radix_if1:
-  55 0028 03 61	    mov r3, # SIXTEEN
-  56 002A B0 B8	    cmp r3, r1
-  57 002C 03 4C	    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
-  58           	
-  59           	number_nan:
-  60 002E F2 6F	    mov r2, # NAN & 0xFF
-  61 0030 F2 7F	    movt r2, # NAN & 0xFF
-  62 0032 03 58	    b char2nat_end
-  63           	
-  64           	radix_if2:
-  65 0034 A0 B8	    cmp r2, r1
-  66 0036 01 48	    blo char2nat_end ; if(number < radix) -> char2nat_end
-  67 0038 FA 5B	    b number_nan
-  68           	
-  69           	char2nat_end:
-  70 003A 00 B1	    mov r0, r2
-  71 003C 0F B7	    mov pc, lr
-  72           	    
-  73           	
-  74           	;3)
-  75           	
-  76           	;r0 = &numeral[] , r1 = radix , r2 = number, r3 = error
-  77           	;r4 = idx , r5 = tmp , r6/r7 temporario
-  78          	.equ ZERO, 0
-  79          	.equ ONE, 1
-  80           	
-  81           	str2nat:
-  82 003E 04 24	    push r4 ; guardar os valores de r4, r5, r6 e r7 para nao serem perdidos
-  83 0040 05 24	    push r5
-  84 0042 06 24	    push r6
-  85 0044 07 24	    push r7
-  86 0046 02 60	    mov r2, # ZERO & 0xFF; number = 0
-  87 0048 02 70	    movt r2, # ZERO & 0xFF
-  88 004A 03 60	    mov r3, # ZERO ; error = 0
-  89 004C 04 60	    mov r4, # ZERO ; idx = 0
-  90           	
-  91           	for_loop:
-  92 004E 06 60	    mov r6, # ZERO
-  93 0050 30 BB	    cmp r3, r6
-  94 0052 1A 44	    bne str2nat_end ; if( error != 0 ) -> str2nat_end
-  95 0054 06 60	    mov r6, # '\0'
-  96 0056 07 12	    ldr r7, [r0,r4]
-  97 0058 70 BB	    cmp r7, r6
-  98 005A 16 40	    beq str2nat_end ; if( numeral[idx] == '\0' ) -> str2nat_end
-  99 005C 07 B0	    mov r7, r0
- 100 005E D0 5F	    bl char2nat
- 101 0060 05 B0	    mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
- 102 0062 80 B3	    mov r0, r7
- 103 0064 F6 6F	    mov r6, # NAN & 0xFF ; r6 = NAN
- 104 0066 F6 7F	    movt r6, # NAN & 0xFF
- 105 0068 50 BB	    cmp r5, r6 
- 106 006A 04 44	    bne for_else
- 107 006C F2 6F	    mov r2, # NAN & 0xFF
- 108 006E F2 7F	    movt r2, # NAN & 0xFF
- 109 0070 13 60	    mov r3, # ONE
- 110 0072 ED 5B	    b for_loop
- 111           	
- 112           	for_else:
- 113 0074 06 B0	    mov r6, r0
- 114 0076 02 24	    push r2
- 115 0078 03 24	    push r3
- 116 007A 0C 5C	    bl multiply
- 117 007C 03 04	    pop r3
- 118 007E 02 04	    pop r2
- 119 0080 07 B0	    mov r7, r0
- 120 0082 00 B3	    mov r0, r6
- 121 0084 F2 82	    add r2, r7, r5
- 122 0086 E3 5B	    b for_loop
- 123           	
- 124           	str2nat_end:
- 125 0088 07 04	    pop r7
- 126 008A 06 04	    pop r6
- 127 008C 05 04	    pop r5
- 128 008E 04 04	    pop r4
- 129 0090 00 B1	    mov r0, r2
- 130 0092 0F B7	    mov pc, lr
- 131           	
- 132           	multiply: 
- 133 0094 02 60	    mov r2, #0
- 134           	while:
- 135 0096 03 60	    mov r3, #0
- 136 0098 B0 B8	    cmp r3, r1
- 137 009A 03 4C	    bhs while_end
- 138 009C 22 80	    add r2, r2, r0
- 139 009E 91 A8	    sub r1, r1, #1
- 140 00A0 FA 5B	    b while
- 141           	while_end:
- 142 00A2 00 B1	    mov r0, r2
- 143 00A4 0F B7	    mov pc, lr
- 144           	
- 145           	; 4)
+  26          	.equ STACK_SIZE, 64
+  27           	
+  28           	.section .startup
+  29 0000 01 58	    b _start
+  30 0002 FF 5B	    b .
+  31           	
+  32           	_start:
+  33 0004 4D 0C	    ldr sp, tos_addr
+  34 0006 80 B7	    mov r0, pc
+  35 0008 0E A2	    add lr, r0, #4
+  36 000A 2F 0C	    ldr pc, main_addr
+  37 000C FF 5B	    b .
+  38           	
+  39           	tos_addr:
+  40 000E 12 01	    .word tos
+  41           	
+  42           	main_addr:
+  43 0010 12 00	    .word main
+  44           	
+  45           	.text
+  46           	
+  47           	main:
+  48           	    
+  49           	
+  50           	;r0 = symbol, r1 = radix, r2 = number
+  51           	;r3 temporary values
+  52           	
+  53           	char2nat:
+  54 0012 82 6B	    mov r2, # NAN; & 0xFF; number = NAN
+  55 0014 82 7B	    movt r2, # NAN; & 0xFF
+  56 0016 03 63	    mov r3, # ZEROCHAR
+  57 0018 80 B9	    cmp r0, r3 
+  58 001A 06 48	    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
+  59 001C 93 63	    mov r3, # NINECHAR
+  60 001E 30 B8	    cmp r3, r0
+  61 0020 03 48	    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
+  62 0022 03 63	    mov r3, # ZEROCHAR
+  63 0024 82 89	    sub r2, r0, r3 ; number = symbol - '0'
+  64 0026 09 58	    b radix_if1
+  65           	
+  66           	symbol_else_if:
+  67 0028 13 64	    mov r3, # ACHAR
+  68 002A 80 B9	    cmp r0, r3
+  69 002C 06 48	    blo radix_if1    ; if(symbol < 'A') -> radix_if
+  70 002E 63 64	    mov r3, # FCHAR
+  71 0030 30 B8	    cmp r3, r0
+  72 0032 03 48	    blo radix_if1    ; if( symbol > 'F') -> radix_if
+  73 0034 13 64	    mov r3, # ACHAR
+  74 0036 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
+  75 0038 22 A5	    add r2, r2, #10 ; number = number + 10
+  76           	
+  77           	radix_if1:
+  78 003A 03 61	    mov r3, # SIXTEEN
+  79 003C B0 B8	    cmp r3, r1
+  80 003E 03 4C	    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
+  81           	
+  82           	number_nan:
+  83 0040 82 6B	    mov r2, # NAN ;& 0xFF
+  84 0042 82 7B	    movt r2, # NAN; & 0xFF
+  85 0044 03 58	    b char2nat_end
+  86           	
+  87           	radix_if2:
+  88 0046 A0 B8	    cmp r2, r1
+  89 0048 01 48	    blo char2nat_end ; if(number < radix) -> char2nat_end
+  90 004A FA 5B	    b number_nan
+  91           	
+  92           	char2nat_end:
+  93 004C 00 B1	    mov r0, r2
+  94 004E 0F B7	    mov pc, lr
+  95           	    
+  96           	
+  97           	;3)
+  98           	
+  99           	;r0 = &numeral[] , r1 = radix , r2 = number, r3 = error
+ 100           	;r4 = idx , r5 = tmp , r6/r7 temporario
+ 101          	.equ ZERO, 0
+ 102          	.equ ONE, 1
+ 103           	
+ 104           	str2nat:
+ 105 0050 04 24	    push r4 ; guardar os valores de r4, r5, r6 e r7 para nao serem perdidos
+ 106 0052 05 24	    push r5
+ 107 0054 06 24	    push r6
+ 108 0056 07 24	    push r7
+ 109 0058 02 60	    mov r2, # ZERO & 0xFF; number = 0
+ 110 005A 02 70	    movt r2, # ZERO & 0xFF
+ 111 005C 03 60	    mov r3, # ZERO ; error = 0
+ 112 005E 04 60	    mov r4, # ZERO ; idx = 0
+ 113           	
+ 114           	for_loop:
+ 115 0060 06 60	    mov r6, # ZERO
+ 116 0062 30 BB	    cmp r3, r6
+ 117 0064 1A 44	    bne str2nat_end ; if( error != 0 ) -> str2nat_end
+ 118 0066 06 60	    mov r6, # '\0'
+ 119 0068 07 12	    ldr r7, [r0,r4]
+ 120 006A 70 BB	    cmp r7, r6
+ 121 006C 16 40	    beq str2nat_end ; if( numeral[idx] == '\0' ) -> str2nat_end
+ 122 006E 07 B0	    mov r7, r0
+ 123 0070 D0 5F	    bl char2nat
+ 124 0072 05 B0	    mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
+ 125 0074 80 B3	    mov r0, r7
+ 126 0076 86 6B	    mov r6, # NAN; & 0xFF ; r6 = NAN
+ 127 0078 86 7B	    movt r6, # NAN; & 0xFF
+ 128 007A 50 BB	    cmp r5, r6 
+ 129 007C 04 44	    bne for_else
+ 130 007E 82 6B	    mov r2, # NAN ;& 0xFF
+ 131 0080 82 7B	    movt r2, # NAN ;& 0xFF
+ 132 0082 13 60	    mov r3, # ONE
+ 133 0084 ED 5B	    b for_loop
+ 134           	
+ 135           	for_else:
+ 136 0086 06 B0	    mov r6, r0
+ 137 0088 02 24	    push r2
+ 138 008A 03 24	    push r3
+ 139 008C 0C 5C	    bl multiply
+ 140 008E 03 04	    pop r3
+ 141 0090 02 04	    pop r2
+ 142 0092 07 B0	    mov r7, r0
+ 143 0094 00 B3	    mov r0, r6
+ 144 0096 F2 82	    add r2, r7, r5
+ 145 0098 E3 5B	    b for_loop
  146           	
- 147           	; 5)
+ 147           	str2nat_end:
+ 148 009A 07 04	    pop r7
+ 149 009C 06 04	    pop r6
+ 150 009E 05 04	    pop r5
+ 151 00A0 04 04	    pop r4
+ 152 00A2 00 B1	    mov r0, r2
+ 153 00A4 0F B7	    mov pc, lr
+ 154           	
+ 155           	multiply: 
+ 156 00A6 02 60	    mov r2, #0
+ 157           	while:
+ 158 00A8 03 60	    mov r3, #0
+ 159 00AA B0 B8	    cmp r3, r1
+ 160 00AC 03 4C	    bhs while_end
+ 161 00AE 22 80	    add r2, r2, r0
+ 162 00B0 91 A8	    sub r1, r1, #1
+ 163 00B2 FA 5B	    b while
+ 164           	while_end:
+ 165 00B4 00 B1	    mov r0, r2
+ 166 00B6 0F B7	    mov pc, lr
+ 167           	
+ 168           	; 4)
+ 169           	
+ 170           	.data
+ 171           	
+ 172           	NAN:
+ 173 00B8 FF FF	    .word 0xFFFF
+ 174           	
+ 175           	tst_results:
+ 176          	    .word 11, 457, 39439
+ 176 00BA 0B 00 C9 01 0F 9A
+ 177           	
+ 178           	tst_str0:
+ 179          	    .asciz "01011"
+ 179 00C0 30 31 30 31 31 00
+ 180           	
+ 181           	tst_str1:
+ 182          	    .asciz "709"
+ 182 00C6 37 30 39 00
+ 183           	
+ 184           	tst_str2:
+ 185          	    .asciz "9A0F"
+ 185 00CA 39 41 30 46 00
+ 186           	
+ 187           	 
+ 188           	
+ 189           	.section .bss
+ 190           	
+ 191           	error:
+ 192 00D0 00   	    .space 1
+ 193           	
+ 194           	.section .stack
+ 195 00D2 00   	    .space STACK_SIZE
+ 195 .... ..
+ 195 0111 00
+ 196           	tos:
+ 197           	; 5)

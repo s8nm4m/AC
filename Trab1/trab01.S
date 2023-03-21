@@ -17,19 +17,99 @@
 
 ;2 c)
 
-.equ NAN, 0xFFFF
+;.equ NAN, 0xFFFF
 .equ ZEROCHAR, '0'
 .equ NINECHAR, '9'
 .equ ACHAR, 'A'
 .equ FCHAR, 'F'
 .equ SIXTEEN, 16
+.equ STACK_SIZE, 64
+.equ ZERO, 0
+.equ ONE, 1
+.equ TWO, 2
+.equ FOUR, 4
+.equ EIGHT, 8
+
+.section .startup
+    b _start
+    b .
+
+_start:
+    ldr sp, tos_addr
+    mov r0, pc
+    add lr, r0, #4
+    mov r1, # ONE
+    strb r1, shift
+    mov r1, # ZERO
+    strb r1, error
+    ldr pc, main_addr
+    b .
+
+tos_addr:
+    .word tos
+
+main_addr:
+    .word main
+
+.text
+
+main:
+    push lr
+    ldr r0, tst_str0_addr
+    ldr r4, [r0, # ZERO]
+    mov r1, # TWO
+    bl str2nat
+    cmp r0, r4
+    add r5, lr, # TWO
+    push r5
+    beq error_shift
+    ldr r0, tst_str1_addr
+    ldr r4, [r0, # TWO]
+    mov r1, # EIGHT
+    bl str2nat
+    cmp r0, r4
+    add r5, lr, # TWO
+    push r5
+    beq error_shift
+    ldr r0, tst_str2_addr
+    ldr r4, [r0, # FOUR]
+    mov r1, # SIXTEEN
+    bl str2nat
+    cmp r0, r4
+    add r5, lr, # TWO
+    push r5
+    beq error_shift
+    strb r0, error
+    pop pc
+
+error_shift:
+    ldrb r0, error
+    ldrb r1, shift
+    orr r1, r0, r1
+    strb r1, error
+    ldrb r1, shift
+    lsl r1, r1, # ONE
+    strb r1, shift
+    pop pc
+
+tst_results_addr:
+    .word tst_results
+
+tst_str0_addr:
+    .word tst_str0
+
+tst_str1_addr:
+    .word tst_str1
+
+tst_str2_addr:
+    .word tst_str2
 
 ;r0 = symbol, r1 = radix, r2 = number
 ;r3 temporary values
 
 char2nat:
-    mov r2, # NAN & 0xFF; number = NAN
-    movt r2, # NAN & 0xFF
+    mov r2, # NAN; & 0xFF; number = NAN
+    movt r2, # NAN; & 0xFF
     mov r3, # ZEROCHAR
     cmp r0, r3 
     blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
@@ -57,8 +137,8 @@ radix_if1:
     bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
 
 number_nan:
-    mov r2, # NAN & 0xFF
-    movt r2, # NAN & 0xFF
+    mov r2, # NAN ;& 0xFF
+    movt r2, # NAN; & 0xFF
     b char2nat_end
 
 radix_if2:
@@ -75,8 +155,6 @@ char2nat_end:
 
 ;r0 = &numeral[] , r1 = radix , r2 = number, r3 = error
 ;r4 = idx , r5 = tmp , r6/r7 temporario
-.equ ZERO, 0
-.equ ONE, 1
 
 str2nat:
     push r4 ; guardar os valores de r4, r5, r6 e r7 para nao serem perdidos
@@ -100,12 +178,12 @@ for_loop:
     bl char2nat
     mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
     mov r0, r7
-    mov r6, # NAN & 0xFF ; r6 = NAN
-    movt r6, # NAN & 0xFF
+    mov r6, # NAN; & 0xFF ; r6 = NAN
+    movt r6, # NAN; & 0xFF
     cmp r5, r6 
     bne for_else
-    mov r2, # NAN & 0xFF
-    movt r2, # NAN & 0xFF
+    mov r2, # NAN ;& 0xFF
+    movt r2, # NAN ;& 0xFF
     mov r3, # ONE
     b for_loop
 
@@ -144,4 +222,32 @@ while_end:
 
 ; 4)
 
+.data
+
+NAN:
+    .word 0xFFFF
+
+tst_results:
+    .word 11, 457, 39439
+
+tst_str0:
+    .asciz "01011"
+
+tst_str1:
+    .asciz "709"
+
+tst_str2:
+    .asciz "9A0F"
+
+.section .bss
+
+error:
+    .space 1
+
+shift:
+    .space 1
+
+.section .stack
+    .space STACK_SIZE
+tos:
 ; 5)
