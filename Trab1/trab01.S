@@ -60,7 +60,8 @@ main:
     mov r1, # TWO
     bl str2nat
     cmp r0, r4
-    add r5, lr, # TWO
+    mov r6, pc
+    add r5, r6, # EIGHT
     push r5
     beq error_shift
     ldr r0, tst_str1_addr
@@ -68,7 +69,8 @@ main:
     mov r1, # EIGHT
     bl str2nat
     cmp r0, r4
-    add r5, lr, # TWO
+    mov r6, pc
+    add r5, r6, # EIGHT
     push r5
     beq error_shift
     ldr r0, tst_str2_addr
@@ -76,7 +78,8 @@ main:
     mov r1, # SIXTEEN
     bl str2nat
     cmp r0, r4
-    add r5, lr, # TWO
+    mov r6, pc
+    add r5, r6, # EIGHT
     push r5
     beq error_shift
     strb r0, error
