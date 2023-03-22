@@ -36,12 +36,14 @@
 
 _start:
     ldr sp, tos_addr
+    mov r1, # ONE
+    mov r2, shift_addr
+    strb r1, r2
+    mov r1, # ZERO
+    mov r2, error_addr
+    strb r1, r2
     mov r0, pc
     add lr, r0, #4
-    mov r1, # ONE
-    strb r1, shift
-    mov r1, # ZERO
-    strb r1, error
     ldr pc, main_addr
     b .
 
@@ -50,6 +52,24 @@ tos_addr:
 
 main_addr:
     .word main
+
+tst_results_addr:
+    .word tst_results
+
+tst_str0_addr:
+    .word tst_str0
+
+tst_str1_addr:
+    .word tst_str1
+
+tst_str2_addr:
+    .word tst_str2
+
+error_addr:
+    .word error
+
+shift_addr:
+    .word shift
 
 .text
 
@@ -89,23 +109,13 @@ error_shift:
     ldrb r0, error
     ldrb r1, shift
     orr r1, r0, r1
-    strb r1, error
+    mov r2, error_addr
+    strb r1, r2
     ldrb r1, shift
     lsl r1, r1, # ONE
-    strb r1, shift
+    mov r2, shift_addr
+    strb r1, r2
     pop pc
-
-tst_results_addr:
-    .word tst_results
-
-tst_str0_addr:
-    .word tst_str0
-
-tst_str1_addr:
-    .word tst_str1
-
-tst_str2_addr:
-    .word tst_str2
 
 ;r0 = symbol, r1 = radix, r2 = number
 ;r3 temporary values
