@@ -1,10 +1,103 @@
-P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Exercicios\Exemplo1\str_copy.lst	Wed Mar 22 11:37:10 2023
+P16 assembler v1.4.0 (Mar  6 2023)	str_copy.lst	Wed Mar 22 11:39:30 2023
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      0000 0
+0       .startup        0000      0012 18
+1       .text           0012      0026 38
+2       .data           0038      002C 44
+3       .bss            0064      0064 100
+4       .stack          00C8      0040 64
 
 Symbols
 Name                    Type      Value       Section
+_start                  LABEL     0004 4      .startup
+line#13                 LABEL     000C 12     .startup
+line#6                  LABEL     0002 2      .startup
+main                    LABEL     0012 18     .text
+main_addr               LABEL     0010 16     .startup
+MAX_PHRASE_SIZE         ABSOLUTE  0064 100    .startup
+phrase_copy             LABEL     0064 100    .bss
+phrase_copy_addr        LABEL     001E 30     .text
+phrase_orig             LABEL     0038 56     .data
+phrase_orig_addr        LABEL     001C 28     .text
+STACK_SIZE              ABSOLUTE  0040 64     .startup
+str_copy                LABEL     0020 32     .text
+str_copy_loop           LABEL     0026 38     .text
+str_copy_ret            LABEL     0032 50     .text
+tos                     LABEL     0108 264    .stack
+tos_addr                LABEL     000E 14     .startup
 
 Code listing
+   1          	.equ MAX_PHRASE_SIZE, 100
+   2          	.equ STACK_SIZE, 64
+   3           	
+   4           	.section .startup
+   5 0000 01 58	b _start
+   6 0002 FF 5B	b .
+   7           	
+   8           	_start:
+   9 0004 4D 0C	    ldr sp, tos_addr
+  10 0006 80 B7	    mov r0, pc
+  11 0008 0E A2	    add lr, r0, #4
+  12 000A 2F 0C	    ldr pc, main_addr
+  13 000C FF 5B	    b .
+  14           	
+  15           	tos_addr:
+  16 000E 08 01	    .word tos
+  17           	
+  18           	main_addr:
+  19 0010 12 00	    .word main
+  20           	.text
+  21           	
+  22           	main:
+  23 0012 0E 24	    push lr
+  24 0014 40 0C	    ldr r0, phrase_copy_addr
+  25 0016 21 0C	    ldr r1, phrase_orig_addr
+  26 0018 03 5C	    bl str_copy
+  27 001A 0F 04	    pop pc
+  28           	
+  29           	phrase_orig_addr: 
+  30 001C 38 00	    .word phrase_orig
+  31           	
+  32           	phrase_copy_addr:
+  33 001E 64 00	    .word phrase_copy
+  34           	
+  35           	; r0 = &dst[0], r1 = &src[0]
+  36           	; r2 = i, r3 = aux char, r4 = temp
+  37           	
+  38           	str_copy:
+  39 0020 04 24	    push r4 ; save
+  40 0022 02 60	    mov r2, #0
+  41 0024 04 60	    mov r4, #0 ; same as ’\0’
+  42           	str_copy_loop:
+  43 0026 13 19	    ldrb r3, [r1, r2]
+  44 0028 30 BA	    cmp r3, r4
+  45 002A 03 40	    beq str_copy_ret
+  46 002C 03 39	    strb r3, [r0, r2]
+  47 002E A2 A0	    add r2, r2, #1
+  48 0030 FA 5B	    b str_copy_loop
+  49           	str_copy_ret:
+  50 0032 04 39	    strb r4, [r0, r2]
+  51 0034 04 04	    pop r4 ; restore
+  52 0036 0F B7	    mov pc, lr
+  53           	
+  54           	.data
+  55           	phrase_orig:
+  56          	    .asciz "the quick brown fox jumps over the lazy dog"
+  56 0038 74 68 65 20 71 75 69 63 6B 20 62 72 6F 77 6E 20
+  56 0048 66 6F 78 20 6A 75 6D 70 73 20 6F 76 65 72 20 74
+  56 0058 68 65 20 6C 61 7A 79 20 64 6F 67 00
+  57           	
+  58           	.section .bss
+  59           	
+  60           	phrase_copy:
+  61 0064 00   	    .space MAX_PHRASE_SIZE
+  61 .... ..
+  61 00C7 00
+  62           	
+  63           	.section .stack
+  64 00C8 00   	.space STACK_SIZE
+  64 .... ..
+  64 0107 00
+  65           	tos:
+  66           	

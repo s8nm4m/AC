@@ -33,8 +33,8 @@ phrase_copy_addr:
     .word phrase_copy
 
 ; r0 = &dst[0], r1 = &src[0]
-; r2 = i, r3 = aux char, r4 = 
-temp
+; r2 = i, r3 = aux char, r4 = temp
+
 str_copy:
     push r4 ; save
     mov r2, #0
@@ -53,8 +53,7 @@ str_copy_ret:
 
 .data
 phrase_orig:
-    .asciz "the quick brown fox jumps 
-    over the lazy dog"
+    .asciz "the quick brown fox jumps over the lazy dog"
 
 .section .bss
 

@@ -17,7 +17,7 @@
 
 ;2 c)
 
-;.equ NAN, 0xFFFF
+.equ NAN, 0xFFFF
 .equ ZEROCHAR, '0'
 .equ NINECHAR, '9'
 .equ ACHAR, 'A'
@@ -36,15 +36,17 @@
 
 _start:
     ldr sp, tos_addr
+    mov r0, # ZERO
     mov r1, # ONE
-    mov r2, shift_addr
-    strb r1, r2
+    ldr r2, shift_addr
+    strb r1, [r2, r0]
     mov r1, # ZERO
-    mov r2, error_addr
-    strb r1, r2
+    ldr r2, error_addr
+    strb r1, [r2, r0]
     mov r0, pc
     add lr, r0, #4
     ldr pc, main_addr
+    ldr r2, error_addr
     b .
 
 tos_addr:
@@ -52,24 +54,6 @@ tos_addr:
 
 main_addr:
     .word main
-
-tst_results_addr:
-    .word tst_results
-
-tst_str0_addr:
-    .word tst_str0
-
-tst_str1_addr:
-    .word tst_str1
-
-tst_str2_addr:
-    .word tst_str2
-
-error_addr:
-    .word error
-
-shift_addr:
-    .word shift
 
 .text
 
@@ -102,27 +86,47 @@ main:
     add r5, r6, # EIGHT
     push r5
     beq error_shift
-    strb r0, error
     pop pc
 
 error_shift:
-    ldrb r0, error
-    ldrb r1, shift
+    mov r3, # ZERO
+    ldr r0, error_addr
     orr r1, r0, r1
-    mov r2, error_addr
-    strb r1, r2
-    ldrb r1, shift
+    strb r1, [r0, r3]
+    ldr r0, shift_addr
     lsl r1, r1, # ONE
-    mov r2, shift_addr
-    strb r1, r2
+    strb r1, [r0, r3]
     pop pc
+
+tst_str0_addr:
+    .word tst_str0
+
+tst_str1_addr:
+    .word tst_str1
+
+tst_str2_addr:
+    .word tst_str2
+
+tst_results_addr:
+    .word tst_results
+
+
+shift_addr:
+    .word shift
+char2nat_addr:
+    .word char2nat
+str2nat_addr:
+    .word str2nat
+
+error_addr:
+    .word error
 
 ;r0 = symbol, r1 = radix, r2 = number
 ;r3 temporary values
 
 char2nat:
-    mov r2, # NAN; & 0xFF; number = NAN
-    movt r2, # NAN; & 0xFF
+    mov r2, # NAN & 0xFF; number = NAN
+    movt r2, # NAN & 0xFF
     mov r3, # ZEROCHAR
     cmp r0, r3 
     blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
@@ -150,8 +154,8 @@ radix_if1:
     bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
 
 number_nan:
-    mov r2, # NAN ;& 0xFF
-    movt r2, # NAN; & 0xFF
+    mov r2, # NAN & 0xFF
+    movt r2, # NAN & 0xFF
     b char2nat_end
 
 radix_if2:
@@ -162,7 +166,6 @@ radix_if2:
 char2nat_end:
     mov r0, r2
     mov pc, lr
-    
 
 ;3)
 
@@ -176,28 +179,30 @@ str2nat:
     push r7
     mov r2, # ZERO & 0xFF; number = 0
     movt r2, # ZERO & 0xFF
-    mov r3, # ZERO ; error = 0
+    ldr r3, error_addr2; error = 0
     mov r4, # ZERO ; idx = 0
 
 for_loop:
     mov r6, # ZERO
     cmp r3, r6
-    bne str2nat_end ; if( error != 0 ) -> str2nat_end
+    beq str2nat_end ; if( error != 0 ) -> str2nat_end
     mov r6, # '\0'
     ldr r7, [r0,r4]
     cmp r7, r6
-    beq str2nat_end ; if( numeral[idx] == '\0' ) -> str2nat_end
+    bne str2nat_end ; if( numeral[idx] == '\0' ) -> str2nat_end
     mov r7, r0
     bl char2nat
     mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
     mov r0, r7
-    mov r6, # NAN; & 0xFF ; r6 = NAN
-    movt r6, # NAN; & 0xFF
+    mov r6, # NAN & 0xFF ; r6 = NAN
+    movt r6, # NAN & 0xFF
     cmp r5, r6 
     bne for_else
-    mov r2, # NAN ;& 0xFF
-    movt r2, # NAN ;& 0xFF
-    mov r3, # ONE
+    mov r2, # NAN & 0xFF
+    movt r2, # NAN & 0xFF
+    mov r4, # ONE
+    mov r7, # ZERO
+    str r4, [r3, r7]
     b for_loop
 
 for_else:
@@ -233,12 +238,12 @@ while_end:
     mov r0, r2
     mov pc, lr
 
+error_addr2:
+    .word error
+
 ; 4)
 
 .data
-
-NAN:
-    .word 0xFFFF
 
 tst_results:
     .word 11, 457, 39439
