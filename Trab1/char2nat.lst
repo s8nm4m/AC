@@ -1,76 +1,133 @@
-P16 assembler v1.4.0 (Mar  6 2023)	d:\ISEL\2223\LEIC\s2\AC\Trab1\char2nat.lst	Mon Mar 20 16:39:18 2023
+P16 assembler v1.4.0 (Mar  6 2023)	d:\ISEL\2223\LEIC\s2\AC\Trab1\char2nat.lst	Wed Mar 22 18:46:32 2023
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      003E 62
+0       .startup        0000      0012 18
+1       .text           0012      0050 80
+2       .data           0062      0004 4
+3       .stack          0066      0040 64
 
 Symbols
 Name                    Type      Value       Section
-ACHAR                   ABSOLUTE  0041 65     .text
-char2nat                LABEL     0000 0      .text
-char2nat_end            LABEL     003A 58     .text
-FCHAR                   ABSOLUTE  0046 70     .text
-NAN                     ABSOLUTE  FFFF 65535  .text
-NINECHAR                ABSOLUTE  0039 57     .text
-number_nan              LABEL     002E 46     .text
-radix_if1               LABEL     0028 40     .text
-radix_if2               LABEL     0034 52     .text
-SIXTEEN                 ABSOLUTE  0010 16     .text
-symbol_else_if          LABEL     0016 22     .text
-ZEROCHAR                ABSOLUTE  0030 48     .text
+_start                  LABEL     0004 4      .startup
+char2nat                LABEL     0024 36     .text
+char2nat_end            LABEL     005E 94     .text
+line#10                 LABEL     0002 2      .startup
+line#17                 LABEL     000C 12     .startup
+main                    LABEL     0012 18     .text
+main_addr               LABEL     0010 16     .startup
+NAN                     ABSOLUTE  FFFF 65535  .startup
+number_nan              LABEL     0052 82     .text
+radix                   LABEL     0064 100    .data
+radix_addr              LABEL     0022 34     .text
+radix_if1               LABEL     004C 76     .text
+radix_if2               LABEL     0058 88     .text
+STACK_SIZE              ABSOLUTE  0040 64     .startup
+symbol                  LABEL     0062 98     .data
+symbol_addr             LABEL     0020 32     .text
+symbol_else_if          LABEL     003A 58     .text
+tos                     LABEL     00A6 166    .stack
+tos_addr                LABEL     000E 14     .startup
 
 Code listing
-   1           	;2 c)
-   2           	
-   3          	.equ NAN, 0xFFFF
-   4          	.equ ZEROCHAR, '0'
-   5          	.equ NINECHAR, '9'
-   6          	.equ ACHAR, 'A'
-   7          	.equ FCHAR, 'F'
-   8          	.equ SIXTEEN, 16
-   9           	
-  10           	;r0 = symbol, r1 = radix, r2 = number
-  11           	;r3 temporary values
-  12           	
-  13           	char2nat:
-  14 0000 F2 6F	    mov r2, # NAN & 0xFF; number = NAN
-  15 0002 F2 7F	    movt r2, # NAN & 0xFF
-  16 0004 03 63	    mov r3, # ZEROCHAR
-  17 0006 80 B9	    cmp r0, r3 
-  18 0008 06 48	    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
-  19 000A 93 63	    mov r3, # NINECHAR
-  20 000C 30 B8	    cmp r3, r0
-  21 000E 03 48	    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
-  22 0010 03 63	    mov r3, # ZEROCHAR
-  23 0012 82 89	    sub r2, r0, r3 ; number = symbol - '0'
-  24 0014 09 58	    b radix_if1
-  25           	
-  26           	symbol_else_if:
-  27 0016 13 64	    mov r3, # ACHAR
-  28 0018 80 B9	    cmp r0, r3
-  29 001A 06 48	    blo radix_if1    ; if(symbol < 'A') -> radix_if
-  30 001C 63 64	    mov r3, # FCHAR
-  31 001E 30 B8	    cmp r3, r0
-  32 0020 03 48	    blo radix_if1    ; if( symbol > 'F') -> radix_if
-  33 0022 13 64	    mov r3, # ACHAR
-  34 0024 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
-  35 0026 22 A5	    add r2, r2, #10 ; number = number + 10
-  36           	
-  37           	radix_if1:
-  38 0028 03 61	    mov r3, # SIXTEEN
-  39 002A B0 B8	    cmp r3, r1
-  40 002C 03 4C	    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
+   1           	; unit test da rotina char2nat 
+   2           	;teste default symbol = 0, radix = 2
+   3           	;para outros testes mudar na seccao .data os valores de symbol e radix
+   4           	
+   5          	.equ NAN, 0xFFFF
+   6          	.equ STACK_SIZE, 64
+   7           	
+   8           	.section .startup
+   9 0000 01 58	    b _start
+  10 0002 FF 5B	    b .
+  11           	
+  12           	_start:
+  13 0004 4D 0C	    ldr sp, tos_addr
+  14 0006 80 B7	    mov r0, pc
+  15 0008 0E A2	    add lr, r0, #4
+  16 000A 2F 0C	    ldr pc, main_addr
+  17 000C FF 5B	    b . ; e suposto dar 0
+  18           	
+  19           	tos_addr:
+  20 000E A6 00	    .word tos
+  21           	
+  22           	main_addr:
+  23 0010 12 00	    .word main
+  24           	
+  25           	.text
+  26           	
+  27           	main:
+  28 0012 0E 24	    push lr
+  29 0014 50 0C	    ldr r0, symbol_addr
+  30 0016 00 00	    ldr r0, [r0, #0]
+  31 0018 41 0C	    ldr r1, radix_addr
+  32 001A 11 00	    ldr r1, [r1, #0]
+  33 001C 03 5C	    bl char2nat
+  34 001E 0F 04	    pop pc
+  35           	
+  36           	;r0 = symbol, r1 = radix, r2 = number
+  37           	;r3 temporary values
+  38           	
+  39           	symbol_addr:
+  40 0020 62 00	    .word symbol
   41           	
-  42           	number_nan:
-  43 002E F2 6F	    mov r2, # NAN & 0xFF
-  44 0030 F2 7F	    movt r2, # NAN & 0xFF
-  45 0032 03 58	    b char2nat_end
-  46           	
-  47           	radix_if2:
-  48 0034 A0 B8	    cmp r2, r1
-  49 0036 01 48	    blo char2nat_end ; if(number < radix) -> char2nat_end
-  50 0038 FA 5B	    b number_nan
-  51           	
-  52           	char2nat_end:
-  53 003A 00 B1	    mov r0, r2
-  54 003C 0F B7	    mov pc, lr
+  42           	radix_addr:
+  43 0022 64 00	    .word radix
+  44           	
+  45           	char2nat:
+  46 0024 F2 6F	    mov r2, #NAN & 0xFF; number = NAN
+  47 0026 F2 7F	    movt r2, #NAN & 0xFF
+  48 0028 03 63	    mov r3, #'0'
+  49 002A 80 B9	    cmp r0, r3 
+  50 002C 06 48	    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
+  51 002E 93 63	    mov r3, #'9'
+  52 0030 30 B8	    cmp r3, r0
+  53 0032 03 48	    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
+  54 0034 03 63	    mov r3, #'0'
+  55 0036 82 89	    sub r2, r0, r3 ; number = symbol - '0'
+  56 0038 09 58	    b radix_if1
+  57           	
+  58           	symbol_else_if:
+  59 003A 13 64	    mov r3, #'A'
+  60 003C 80 B9	    cmp r0, r3
+  61 003E 06 48	    blo radix_if1    ; if(symbol < 'A') -> radix_if
+  62 0040 63 64	    mov r3, #'F'
+  63 0042 30 B8	    cmp r3, r0
+  64 0044 03 48	    blo radix_if1    ; if( symbol > 'F') -> radix_if
+  65 0046 13 64	    mov r3, #'A'
+  66 0048 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
+  67 004A 22 A5	    add r2, r2, #10 ; number = number + 10
+  68           	
+  69           	radix_if1:
+  70 004C 03 61	    mov r3, #16
+  71 004E B0 B8	    cmp r3, r1
+  72 0050 03 4C	    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
+  73           	
+  74           	number_nan:
+  75 0052 F2 6F	    mov r2, #NAN & 0xFF
+  76 0054 F2 7F	    movt r2, #NAN & 0xFF
+  77 0056 03 58	    b char2nat_end
+  78           	
+  79           	radix_if2:
+  80 0058 A0 B8	    cmp r2, r1
+  81 005A 01 48	    blo char2nat_end ; if(number < radix) -> char2nat_end
+  82 005C FA 5B	    b number_nan
+  83           	
+  84           	char2nat_end:
+  85 005E 00 B1	    mov r0, r2
+  86 0060 0F B7	    mov pc, lr
+  87           	    
+  88           	.data
+  89           	
+  90           	symbol:
+  91 0062 30 00	    .word 0x0030 ; nao esta a funcionar .ascii '0'
+  92           	
+  93           	radix:
+  94 0064 02 00	    .word 2
+  95           	
+  96           	.section .stack
+  97 0066 00   	.space STACK_SIZE
+  97 .... ..
+  97 00A5 00
+  98           	
+  99           	tos:

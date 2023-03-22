@@ -35,13 +35,12 @@
     b .
 
 _start:
-    ldr sp, tos_addr
-    mov r0, # ZERO
-    mov r1, # ONE
-    ldr r2, shift_addr
-    strb r1, [r2, r0]
+    ldr sp, tos_addr ; por no sp o address do top of
     mov r1, # ZERO
     ldr r2, error_addr
+    strb r1, [r2, r0]
+    mov r1, # ONE
+    ldr r2, shift_addr
     strb r1, [r2, r0]
     mov r0, pc
     add lr, r0, #4
@@ -110,11 +109,12 @@ tst_str2_addr:
 tst_results_addr:
     .word tst_results
 
-
 shift_addr:
     .word shift
+
 char2nat_addr:
     .word char2nat
+
 str2nat_addr:
     .word str2nat
 
@@ -227,6 +227,7 @@ str2nat_end:
 
 multiply: 
     mov r2, #0
+
 while:
     mov r3, #0
     cmp r3, r1
@@ -234,6 +235,7 @@ while:
     add r2, r2, r0
     sub r1, r1, #1
     b while
+
 while_end:
     mov r0, r2
     mov pc, lr
@@ -250,10 +252,12 @@ tst_results:
 
 tst_str0:
     .asciz "01011"
+    .align
 
 tst_str1:
     .asciz "709"
-
+    .align
+    
 tst_str2:
     .asciz "9A0F"
 
@@ -266,6 +270,6 @@ shift:
     .space 1
 
 .section .stack
-    .space STACK_SIZE
+.space STACK_SIZE
 tos:
 ; 5)
