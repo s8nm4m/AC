@@ -1,5 +1,9 @@
-; r0 = multiplicando
-; r1 = multiplicador
+; Trabalho realizado pelos alunos 
+;André Monteiro, 43842, e Constança Costa, 50541, 
+;da turma 24D
+
+;r0 = multiplicando
+;r1 = multiplicador
 
 ;1) a) Após consultar a tabela presente no Guia de Codificação das Instruções 
 ;concluimos que a implementação do código ocupa 18 bytes de memória.
