@@ -1,7 +1,7 @@
 ; r0 = multiplicando
 ; r1 = multiplicador
 
-;1) a) Esta implementação ocupa 8 bytes de memória, devido ao uso de 4 registos(R0..R3), sendo cada um de 2 bytes tendo em conta as caracteristicas do processor P16.
+;1) a) Esta implementação ocupa 18 bytes de memória, devido ao uso de 4 registos(R0..R3), sendo cada um de 2 bytes tendo em conta as caracteristicas do processor P16.
 ;b) Enquanto grupo não concordamos com esta afirmação.
 ;Como sabemos os registos em rotinas encontram-se divididos em 3 classes,
 ;achamos que não seria preferivel a utilização do R4, pois ao contrário do R2,
