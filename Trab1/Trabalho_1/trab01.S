@@ -19,9 +19,15 @@
 
 ;2) a) O valor da constante NAN é FFFF=65535, porque em hexadecimal cada valor 
 ;pode ser compreendido entre 0 e 15, onde 15=F. Neste caso o valor é positivo
-;por ser do tipo uint16_t, ou seja, um intiero sem sinal de 16 bits.
+;por ser do tipo uint16_t, ou seja, um inteiro sem sinal de 16 bits.
 
-;b) .equ NAN, FFFF ocupa 16 bits, ou seja, 1 registo.
+;b) A constante NAN apresenta duas opções de definição das quais: 
+;.equ NAN, FFFF e
+;NAN:
+;     .word 0xFFFF
+;Como sabemos ambas são distintas, a primeira apenas trabalha com registos,
+;no entanto acaba por necessitar de mais instruções do que a segunda definição.
+;Esta apresenta uma maior velocidade de processamento por recorrer à memória.
 
 ;2 c)
 
