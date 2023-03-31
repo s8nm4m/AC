@@ -10,7 +10,7 @@ _start:
     mov r0, pc
     add lr, r0, #4
     ldr pc, main_addr
-    b . ; suposto dar 457
+    b . ; suposto dar FFFF
 
 tos_addr:
     .word tos
@@ -42,48 +42,61 @@ str2nat:
     push r5
     push r6
     push r7
-    mov r2, #0; number = 0
-    ldr r3, error_addr; error = 0 
+    push r8
+    mov r2, #0 ; number = 0 
+    mov r3, #0 ; error = 0
     mov r4, #0 ; idx = 0
-    str r4, [r3, #0]
-    ldr r3, [r3, #0]
 
 for_loop:
-    lsl r7, r4, #1 
-    ldr r6, [r0, r7]
+    ldrb r6, [r0, r4] ; load numeral[idx]
     mov r7, #0
     cmp r3, r7 ; if (error != 0) -> str2nat_end
     bne str2nat_end
     mov r7, #'\0'
-    cmp r0, r7  ; if (numeral[idx])
+    cmp r6, r7  ; if (numeral[idx] == '\0') -> str2nat_end
     beq str2nat_end
-    mov r0, r6
+    mov r7, r0 ; guardar o valor &numerical[]
+    mov r0, r6 ; por o parametro a passar a char2nat na posicao certa
+    mov r6, r3
+    mov r8, r2
+    push lr
     bl char2nat
-    mov r5, r0
-    mov r0, r6
+    pop lr
+    mov r2, r8
+    mov r3, r6
+    mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
+    mov r0, r7 ; restaurar &numerical[] para o sitio certo
     mov r7, #NAN & 0xFF
     movt r7, #NAN & 0xFF
-    cmp r5, r7
+    cmp r5, r7      ; if (tmp != NAN) -> for_else
     bne for_else
     mov r2, #NAN & 0xFF
     movt r2, #NAN & 0xFF
-    mov r7, #1
-    str 
+    mov r3, #1 
     b for_increment
 
 for_else:
+    mov r6, r1
     mov r7, r0
+    mov r8, r3
+    mov r0, r2
+    push lr
     bl multiply
+    pop lr
     mov r2, r0
+    mov r1, r6
+    mov r0, r7
+    mov r3, r8
     add r2, r2, r5
     mov r0, r7
-    b for_increment:
+    b for_increment
 
 for_increment:
     add r4, r4, #1
     b for_loop
 
 str2nat_end:
+    pop r8
     pop r7
     pop r6
     pop r5

@@ -1,0 +1,231 @@
+P16 assembler v1.4.0 (Mar  6 2023)	str2nat.lst	Mon Mar 27 18:08:10 2023
+
+Sections
+Index   Name            Address   Size
+0       .startup        0000      0012 18
+1       .text           0012      00D4 212
+2       .data           00E6      0006 6
+3       .bss            00EC      0001 1
+4       .stack          00EE      0040 64
+
+Symbols
+Name                    Type      Value       Section
+_start                  LABEL     0004 4      .startup
+char2nat                LABEL     00A8 168    .text
+char2nat_end            LABEL     00E2 226    .text
+error                   LABEL     00EC 236    .bss
+error_addr              LABEL     00A6 166    .text
+for_else                LABEL     0066 102    .text
+for_increment           LABEL     0082 130    .text
+for_loop                LABEL     0032 50     .text
+line#13                 LABEL     000C 12     .startup
+line#6                  LABEL     0002 2      .startup
+main                    LABEL     0012 18     .text
+main_addr               LABEL     0010 16     .startup
+multiply                LABEL     0094 148    .text
+NAN                     ABSOLUTE  FFFF 65535  .startup
+number_nan              LABEL     00D6 214    .text
+numeral                 LABEL     00E6 230    .data
+numeral_addr            LABEL     001E 30     .text
+radix                   LABEL     00EA 234    .data
+radix_addr              LABEL     0020 32     .text
+radix_if1               LABEL     00D0 208    .text
+radix_if2               LABEL     00DC 220    .text
+STACK_SIZE              ABSOLUTE  0040 64     .startup
+str2nat                 LABEL     0022 34     .text
+str2nat_end             LABEL     0086 134    .text
+symbol_else_if          LABEL     00BE 190    .text
+tos                     LABEL     012E 302    .stack
+tos_addr                LABEL     000E 14     .startup
+while                   LABEL     0096 150    .text
+while_end               LABEL     00A2 162    .text
+
+Code listing
+   1          	.equ NAN, 0xFFFF
+   2          	.equ STACK_SIZE, 64
+   3           	
+   4           	.section .startup
+   5 0000 01 58	    b _start
+   6 0002 FF 5B	    b .
+   7           	
+   8           	_start:
+   9 0004 4D 0C	    ldr sp, tos_addr
+  10 0006 80 B7	    mov r0, pc
+  11 0008 0E A2	    add lr, r0, #4
+  12 000A 2F 0C	    ldr pc, main_addr
+  13 000C FF 5B	    b . ; suposto dar FFFF
+  14           	
+  15           	tos_addr:
+  16 000E 2E 01	    .word tos
+  17           	
+  18           	main_addr:
+  19 0010 12 00	    .word main
+  20           	
+  21           	.text
+  22           	
+  23           	main:
+  24 0012 0E 24	    push lr
+  25 0014 40 0C	    ldr r0, numeral_addr
+  26 0016 41 0C	    ldr r1, radix_addr
+  27 0018 11 00	    ldr r1, [r1, #0]
+  28 001A 03 5C	    bl str2nat
+  29 001C 0F 04	    pop pc
+  30           	
+  31           	numeral_addr:
+  32 001E E6 00	    .word numeral
+  33           	
+  34           	radix_addr:
+  35 0020 EA 00	    .word radix
+  36           	
+  37           	;r0 = &numeral[] , r1 = radix , r2 = number, r3 = error
+  38           	;r4 = idx , r5 = tmp , r6 = numeral[idx] r7 = temporario
+  39           	
+  40           	str2nat:
+  41 0022 04 24	    push r4 ; guardar os valores de r4, r5, r6 e r7 para nao serem perdidos
+  42 0024 05 24	    push r5
+  43 0026 06 24	    push r6
+  44 0028 07 24	    push r7
+  45 002A 08 24	    push r8
+  46 002C 02 60	    mov r2, #0 ; number = 0 
+  47 002E 03 60	    mov r3, #0 ; error = 0
+  48 0030 04 60	    mov r4, #0 ; idx = 0
+  49           	
+  50           	for_loop:
+  51 0032 06 1A	    ldrb r6, [r0, r4] ; load numeral[idx]
+  52 0034 07 60	    mov r7, #0
+  53 0036 B0 BB	    cmp r3, r7 ; if (error != 0) -> str2nat_end
+  54 0038 26 44	    bne str2nat_end
+  55 003A 07 60	    mov r7, #'\0'
+  56 003C E0 BB	    cmp r6, r7  ; if (numeral[idx] == '\0') -> str2nat_end
+  57 003E 23 40	    beq str2nat_end
+  58 0040 07 B0	    mov r7, r0 ; guardar o valor &numerical[]
+  59 0042 00 B3	    mov r0, r6 ; por o parametro a passar a char2nat na posicao certa
+  60 0044 86 B1	    mov r6, r3
+  61 0046 08 B1	    mov r8, r2
+  62 0048 0E 24	    push lr
+  63 004A 2E 5C	    bl char2nat
+  64 004C 0E 04	    pop lr
+  65 004E 02 B4	    mov r2, r8
+  66 0050 03 B3	    mov r3, r6
+  67 0052 05 B0	    mov r5, r0 ; tmp = char2nat(numeral[idx], radix)
+  68 0054 80 B3	    mov r0, r7 ; restaurar &numerical[] para o sitio certo
+  69 0056 F7 6F	    mov r7, #NAN & 0xFF
+  70 0058 F7 7F	    movt r7, #NAN & 0xFF
+  71 005A D0 BB	    cmp r5, r7      ; if (tmp != NAN) -> for_else
+  72 005C 04 44	    bne for_else
+  73 005E F2 6F	    mov r2, #NAN & 0xFF
+  74 0060 F2 7F	    movt r2, #NAN & 0xFF
+  75 0062 13 60	    mov r3, #1 
+  76 0064 0E 58	    b for_increment
+  77           	
+  78           	for_else:
+  79 0066 86 B0	    mov r6, r1
+  80 0068 07 B0	    mov r7, r0
+  81 006A 88 B1	    mov r8, r3
+  82 006C 00 B1	    mov r0, r2
+  83 006E 0E 24	    push lr
+  84 0070 11 5C	    bl multiply
+  85 0072 0E 04	    pop lr
+  86 0074 02 B0	    mov r2, r0
+  87 0076 01 B3	    mov r1, r6
+  88 0078 80 B3	    mov r0, r7
+  89 007A 03 B4	    mov r3, r8
+  90 007C A2 82	    add r2, r2, r5
+  91 007E 80 B3	    mov r0, r7
+  92 0080 00 58	    b for_increment
+  93           	
+  94           	for_increment:
+  95 0082 C4 A0	    add r4, r4, #1
+  96 0084 D6 5B	    b for_loop
+  97           	
+  98           	str2nat_end:
+  99 0086 08 04	    pop r8
+ 100 0088 07 04	    pop r7
+ 101 008A 06 04	    pop r6
+ 102 008C 05 04	    pop r5
+ 103 008E 04 04	    pop r4
+ 104 0090 00 B1	    mov r0, r2
+ 105 0092 0F B7	    mov pc, lr
+ 106           	
+ 107           	multiply: 
+ 108 0094 02 60	    mov r2, #0
+ 109           	
+ 110           	while:
+ 111 0096 03 60	    mov r3, #0
+ 112 0098 B0 B8	    cmp r3, r1
+ 113 009A 03 4C	    bhs while_end
+ 114 009C 22 80	    add r2, r2, r0
+ 115 009E 91 A8	    sub r1, r1, #1
+ 116 00A0 FA 5B	    b while
+ 117           	
+ 118           	while_end:
+ 119 00A2 00 B1	    mov r0, r2
+ 120 00A4 0F B7	    mov pc, lr
+ 121           	
+ 122           	error_addr:
+ 123 00A6 EC 00	    .word error
+ 124           	
+ 125           	char2nat:
+ 126 00A8 F2 6F	    mov r2, #NAN & 0xFF; number = NAN
+ 127 00AA F2 7F	    movt r2, #NAN & 0xFF
+ 128 00AC 03 63	    mov r3, #'0'
+ 129 00AE 80 B9	    cmp r0, r3 
+ 130 00B0 06 48	    blo symbol_else_if ; if(symbol < '0') -> symbol_else_if
+ 131 00B2 93 63	    mov r3, #'9'
+ 132 00B4 30 B8	    cmp r3, r0
+ 133 00B6 03 48	    blo symbol_else_if ; if(symbol > '9') -> symbol_else_if
+ 134 00B8 03 63	    mov r3, #'0'
+ 135 00BA 82 89	    sub r2, r0, r3 ; number = symbol - '0'
+ 136 00BC 09 58	    b radix_if1
+ 137           	
+ 138           	symbol_else_if:
+ 139 00BE 13 64	    mov r3, #'A'
+ 140 00C0 80 B9	    cmp r0, r3
+ 141 00C2 06 48	    blo radix_if1    ; if(symbol < 'A') -> radix_if
+ 142 00C4 63 64	    mov r3, #'F'
+ 143 00C6 30 B8	    cmp r3, r0
+ 144 00C8 03 48	    blo radix_if1    ; if( symbol > 'F') -> radix_if
+ 145 00CA 13 64	    mov r3, #'A'
+ 146 00CC 82 89	    sub r2, r0, r3 ; number = symbol - 'A'
+ 147 00CE 22 A5	    add r2, r2, #10 ; number = number + 10
+ 148           	
+ 149           	radix_if1:
+ 150 00D0 03 61	    mov r3, #16
+ 151 00D2 B0 B8	    cmp r3, r1
+ 152 00D4 03 4C	    bhs radix_if2 ; if(radix <= 16) -> char2nat_end    
+ 153           	
+ 154           	number_nan:
+ 155 00D6 F2 6F	    mov r2, #NAN & 0xFF
+ 156 00D8 F2 7F	    movt r2, #NAN & 0xFF
+ 157 00DA 03 58	    b char2nat_end
+ 158           	
+ 159           	radix_if2:
+ 160 00DC A0 B8	    cmp r2, r1
+ 161 00DE 01 48	    blo char2nat_end ; if(number < radix) -> char2nat_end
+ 162 00E0 FA 5B	    b number_nan
+ 163           	
+ 164           	char2nat_end:
+ 165 00E2 00 B1	    mov r0, r2
+ 166 00E4 0F B7	    mov pc, lr
+ 167           	
+ 168           	.data
+ 169           	
+ 170           	numeral:
+ 171          	    .asciz "709"
+ 171 00E6 37 30 39 00
+ 172           	
+ 173           	radix:
+ 174 00EA 08 00	    .word 8
+ 175           	
+ 176           	.section .bss
+ 177           	
+ 178           	error:
+ 179 00EC 00   	    .space 1
+ 180           	
+ 181           	.section .stack
+ 182 00EE 00   	.space STACK_SIZE
+ 182 .... ..
+ 182 012D 00
+ 183           	
+ 184           	tos:
+ 185           	
