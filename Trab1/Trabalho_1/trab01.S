@@ -1,7 +1,15 @@
-; r0 = multiplicando
-; r1 = multiplicador
+; Trabalho realizado pelos alunos 
+;André Monteiro, 43842, e Constança Costa, 50541, 
+;da turma 24D
 
-;1) a) Esta implementação ocupa 8 bytes de memória, devido ao uso de 4 registos(R0..R3), sendo cada um de 2 bytes tendo em conta as caracteristicas do processor P16.
+;r0 = multiplicando
+;r1 = multiplicador
+
+;1) a) Após consultar a tabela presente no Guia de Codificação das Instruções 
+;concluimos que a implementação do código ocupa 18 bytes de memória.
+;Tendo em conta os nossos calculos cada uma das 9 linhas com instruções
+;ocupam 16 bits(2 bytes), logo 9x2 bytes = 18 bytes.
+
 ;b) Enquanto grupo não concordamos com esta afirmação.
 ;Como sabemos os registos em rotinas encontram-se divididos em 3 classes,
 ;achamos que não seria preferivel a utilização do R4, pois ao contrário do R2,
@@ -11,9 +19,15 @@
 
 ;2) a) O valor da constante NAN é FFFF=65535, porque em hexadecimal cada valor 
 ;pode ser compreendido entre 0 e 15, onde 15=F. Neste caso o valor é positivo
-;por ser do tipo uint16_t, ou seja, um intiero sem sinal de 16 bits.
+;por ser do tipo uint16_t, ou seja, um inteiro sem sinal de 16 bits.
 
-;b) .equ NAN, FFFF ocupa 16 bits, ou seja, 1 registo.
+;b) A constante NAN apresenta duas opções de definição das quais: 
+;.equ NAN, FFFF e
+;NAN:
+;     .word 0xFFFF
+;Como sabemos ambas são distintas, a primeira apenas trabalha com registos,
+;no entanto acaba por necessitar de mais instruções do que a segunda definição.
+;Esta apresenta uma maior velocidade de processamento por recorrer à memória.
 
 ;2 c)
 
