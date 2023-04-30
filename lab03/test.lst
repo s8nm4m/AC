@@ -1,0 +1,27 @@
+P16 assembler v1.4.0 (Mar  6 2023)	.\test.lst	Sun Apr 30 15:09:27 2023
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0012 18
+
+Symbols
+Name                    Type      Value       Section
+sleep                   LABEL     0000 0      .text
+sleep_end               LABEL     0010 16     .text
+sleep_inner_loop        LABEL     0008 8      .text
+sleep_outer_loop        LABEL     0004 4      .text
+
+Code listing
+   1           	sleep:
+   2 0000 00 C0		and	r0, r0, r0
+   3 0002 06 40		beq	sleep_end
+   4           	sleep_outer_loop:
+   5 0004 E1 63		mov	r1, #0x3E
+   6 0006 31 70		movt	r1, #0x03
+   7           	sleep_inner_loop:
+   8 0008 91 A8		sub	r1, r1, #1
+   9 000A FE 47		bne	sleep_inner_loop
+  10 000C 80 A8		sub	r0, r0, #1
+  11 000E FA 47		bne	sleep_outer_loop
+  12           	sleep_end:
+  13 0010 0F B7		mov	pc, lr
