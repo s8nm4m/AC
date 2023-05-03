@@ -40,6 +40,13 @@ main:
 	;mov	r0, #0x80
 	;bl	outport_write
 	mov r5, #0
+	bl inport_read
+	mov r6, r0
+
+i7check:
+	
+	bl inport_read
+
 loop:
 	bl	inport_read
 	mov r3, r0

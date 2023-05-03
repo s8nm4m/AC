@@ -1,33 +1,34 @@
-P16 assembler v1.4.0 (Mar  6 2023)	.\lab03.lst	Wed May 03 13:27:04 2023
+P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\lab03\lab03.lst	Wed May 03 14:54:39 2023
 
 Sections
 Index   Name            Address   Size
 0       startup         0000      000C 12
-1       .text           000C      0050 80
-2       .data           005C      0000 0
-3       .bss            005C      0000 0
-4       .stack          005C      0040 64
+1       .text           000C      0056 86
+2       .data           0062      0000 0
+3       .bss            0062      0000 0
+4       .stack          0062      0040 64
 
 Symbols
 Name                    Type      Value       Section
 _start                  LABEL     0004 4      startup
-inport_addr             LABEL     0040 64     .text
+i7check                 LABEL     0012 18     .text
+inport_addr             LABEL     0046 70     .text
 INPORT_ADDRESS          ABSOLUTE  FF80 65408  startup
-inport_read             LABEL     003A 58     .text
+inport_read             LABEL     0040 64     .text
 line#19                 LABEL     0002 2      startup
-loop                    LABEL     000E 14     .text
+loop                    LABEL     0014 20     .text
 main                    LABEL     000C 12     .text
 main_addr               LABEL     000A 10     startup
-outport_addr            LABEL     0048 72     .text
+outport_addr            LABEL     004E 78     .text
 OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  startup
-outport_write           LABEL     0042 66     .text
-pisca                   LABEL     001E 30     .text
-sleep                   LABEL     004A 74     .text
-sleep_end               LABEL     005A 90     .text
-sleep_inner_loop        LABEL     0052 82     .text
-sleep_outer_loop        LABEL     004E 78     .text
+outport_write           LABEL     0048 72     .text
+pisca                   LABEL     0024 36     .text
+sleep                   LABEL     0050 80     .text
+sleep_end               LABEL     0060 96     .text
+sleep_inner_loop        LABEL     0058 88     .text
+sleep_outer_loop        LABEL     0054 84     .text
 STACK_SIZE              ABSOLUTE  0040 64     startup
-tos                     LABEL     009C 156    .stack
+tos                     LABEL     00A2 162    .stack
 tos_addr                LABEL     0008 8      startup
 
 Code listing
@@ -55,7 +56,7 @@ Code listing
   22 0006 1F 0C		ldr	pc, main_addr
   23           	
   24           	tos_addr:
-  25 0008 9C 00		.word	tos
+  25 0008 A2 00		.word	tos
   26           	main_addr:
   27 000A 0C 00		.word	main
   28           	
@@ -73,92 +74,99 @@ Code listing
   40           		;mov	r0, #0x80
   41           		;bl	outport_write
   42 000C 05 60		mov r5, #0
-  43           	loop:
-  44 000E 15 5C		bl	inport_read
-  45 0010 03 B0		mov r3, r0
-  46 0012 04 68		mov r4, #0x80
-  47 0014 33 C2		and r3, r3, r4
-  48 0016 03 44		bne pisca
-  49 0018 00 60		mov r0, #0
-  50 001A 13 5C		bl outport_write
-  51 001C F8 5B		b	loop
-  52           	
-  53           	pisca:
-  54 001E 10 B0		mvn r0, r0
-  55 0020 71 60		mov r1, #0x07
-  56 0022 80 C0		and r0, r0, r1
-  57 0024 02 80		add r2, r0, r0
-  58 0026 22 81		add r2, r2, r2
-  59 0028 20 80		add r0, r2, r0
-  60 002A 0F 5C		bl sleep
-  61 002C 95 B2		mvn r5, r5
-  62 002E 12 60		mov r2, #0x01
-  63 0030 50 C1		and r0, r5, r2
-  64 0032 03 68		mov r3, #0x80 
-  65 0034 80 81		add r0, r0, r3
-  66 0036 05 5C		bl	outport_write
-  67 0038 EA 5B		b loop
-  68           	
-  69           	; Rotina:    inport_read
-  70           	; Descricao: *** Para completar ***
-  71           	; Entradas:  -
-  72           	; Saidas:    r0 - *** Para completar ***
-  73           	; Efeitos:   r1 - *** Para completar ***
-  74           	inport_read:
-  75 003A 21 0C		ldr	r1, inport_addr
-  76 003C 10 08		ldrb	r0, [r1, #0]
-  77 003E 0F B7		mov	pc, lr
-  78           	
-  79           	inport_addr:
-  80 0040 80 FF		.word	INPORT_ADDRESS
-  81           	
-  82           	; Rotina:    outport_write
-  83           	; Descricao: *** Para completar ***
-  84           	; Entradas:  r0 - *** Para completar ***
-  85           	; Saidas:    -
-  86           	; Efeitos:   r1 - *** Para completar ***
-  87           	outport_write:
-  88 0042 21 0C		ldr	r1, outport_addr
-  89 0044 10 28		strb	r0, [r1, #0]
-  90 0046 0F B7		mov	pc, lr
-  91           	
-  92           	outport_addr:
-  93 0048 C0 FF		.word	OUTPORT_ADDRESS
-  94           	
-  95           	; Rotina:    sleep
-  96           	; Descricao: *** Para completar ***
-  97           	; Entradas:  *** Para completar ***
-  98           	; Saidas:    *** Para completar ***
-  99           	; Efeitos:   *** Para completar ***
- 100           	sleep:
- 101 004A 00 C0		and	r0, r0, r0
- 102 004C 06 40		beq	sleep_end
- 103           	sleep_outer_loop:
- 104 004E E1 63		mov	r1, #0x3E
- 105 0050 31 70		movt	r1, #0x03
- 106           	sleep_inner_loop:
- 107 0052 91 A8		sub	r1, r1, #1
- 108 0054 FE 47		bne	sleep_inner_loop
- 109 0056 80 A8		sub	r0, r0, #1
- 110 0058 FA 47		bne	sleep_outer_loop
- 111           	sleep_end:
- 112 005A 0F B7		mov	pc, lr
- 113           	
- 114           	; Seccao:    data
- 115           	; Descricao: Guarda as variáveis globais com um valor inicial definido
- 116           	;
- 117           		.data
- 118           	
- 119           	; Seccao:    bss
- 120           	; Descricao: Guarda as variáveis globais sem valor inicial definido
- 121           	;
- 122           		.bss
- 123           	
- 124           	; Seccao:    stack
- 125           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
- 126           	;
- 127           		.stack
- 128 005C 00   		.space	STACK_SIZE
- 128 .... ..
- 128 009B 00
- 129           	tos:
+  43 000E 18 5C		bl inport_read
+  44 0010 06 B0		mov r6, r0
+  45           	
+  46           	i7check:
+  47           		
+  48 0012 16 5C		bl inport_read
+  49           	
+  50           	loop:
+  51 0014 15 5C		bl	inport_read
+  52 0016 03 B0		mov r3, r0
+  53 0018 04 68		mov r4, #0x80
+  54 001A 33 C2		and r3, r3, r4
+  55 001C 03 44		bne pisca
+  56 001E 00 60		mov r0, #0
+  57 0020 13 5C		bl outport_write
+  58 0022 F8 5B		b	loop
+  59           	
+  60           	pisca:
+  61 0024 10 B0		mvn r0, r0
+  62 0026 71 60		mov r1, #0x07
+  63 0028 80 C0		and r0, r0, r1
+  64 002A 02 80		add r2, r0, r0
+  65 002C 22 81		add r2, r2, r2
+  66 002E 20 80		add r0, r2, r0
+  67 0030 0F 5C		bl sleep
+  68 0032 95 B2		mvn r5, r5
+  69 0034 12 60		mov r2, #0x01
+  70 0036 50 C1		and r0, r5, r2
+  71 0038 03 68		mov r3, #0x80 
+  72 003A 80 81		add r0, r0, r3
+  73 003C 05 5C		bl	outport_write
+  74 003E EA 5B		b loop
+  75           	
+  76           	; Rotina:    inport_read
+  77           	; Descricao: *** Para completar ***
+  78           	; Entradas:  -
+  79           	; Saidas:    r0 - *** Para completar ***
+  80           	; Efeitos:   r1 - *** Para completar ***
+  81           	inport_read:
+  82 0040 21 0C		ldr	r1, inport_addr
+  83 0042 10 08		ldrb	r0, [r1, #0]
+  84 0044 0F B7		mov	pc, lr
+  85           	
+  86           	inport_addr:
+  87 0046 80 FF		.word	INPORT_ADDRESS
+  88           	
+  89           	; Rotina:    outport_write
+  90           	; Descricao: *** Para completar ***
+  91           	; Entradas:  r0 - *** Para completar ***
+  92           	; Saidas:    -
+  93           	; Efeitos:   r1 - *** Para completar ***
+  94           	outport_write:
+  95 0048 21 0C		ldr	r1, outport_addr
+  96 004A 10 28		strb	r0, [r1, #0]
+  97 004C 0F B7		mov	pc, lr
+  98           	
+  99           	outport_addr:
+ 100 004E C0 FF		.word	OUTPORT_ADDRESS
+ 101           	
+ 102           	; Rotina:    sleep
+ 103           	; Descricao: *** Para completar ***
+ 104           	; Entradas:  *** Para completar ***
+ 105           	; Saidas:    *** Para completar ***
+ 106           	; Efeitos:   *** Para completar ***
+ 107           	sleep:
+ 108 0050 00 C0		and	r0, r0, r0
+ 109 0052 06 40		beq	sleep_end
+ 110           	sleep_outer_loop:
+ 111 0054 E1 63		mov	r1, #0x3E
+ 112 0056 31 70		movt	r1, #0x03
+ 113           	sleep_inner_loop:
+ 114 0058 91 A8		sub	r1, r1, #1
+ 115 005A FE 47		bne	sleep_inner_loop
+ 116 005C 80 A8		sub	r0, r0, #1
+ 117 005E FA 47		bne	sleep_outer_loop
+ 118           	sleep_end:
+ 119 0060 0F B7		mov	pc, lr
+ 120           	
+ 121           	; Seccao:    data
+ 122           	; Descricao: Guarda as variáveis globais com um valor inicial definido
+ 123           	;
+ 124           		.data
+ 125           	
+ 126           	; Seccao:    bss
+ 127           	; Descricao: Guarda as variáveis globais sem valor inicial definido
+ 128           	;
+ 129           		.bss
+ 130           	
+ 131           	; Seccao:    stack
+ 132           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
+ 133           	;
+ 134           		.stack
+ 135 0062 00   		.space	STACK_SIZE
+ 135 .... ..
+ 135 00A1 00
+ 136           	tos:
