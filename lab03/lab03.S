@@ -44,11 +44,15 @@ main:
 	mov r6, r0
 
 i7check:
-	
+	mov r2, #1
+	cmp r1, r6
+	mov r6, r0
+	bne pisca
+	b loop
 	bl inport_read
 
 loop:
-	bl	inport_read
+	bl	i7check
 	mov r3, r0
 	mov r4, #0x80
 	and r3, r3, r4
