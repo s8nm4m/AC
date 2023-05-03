@@ -1,0 +1,23 @@
+P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Trab3\Trab3.lst	Wed May 03 09:27:41 2023
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      0012 18
+
+Symbols
+Name                    Type      Value       Section
+sym                     LABEL     000E 14     .text
+val                     LABEL     0010 16     .text
+
+Code listing
+   1 0000 60 0C	ldr r0, sym
+   2 0002 12 3A	strb r2, [ r1, r4 ]
+   3 0004 01 24	push r1
+   4 0006 02 24	push r2
+   5 0008 80 B7	mov r0, r15
+   6 000A 05 00	ldr r5, [ r0, #0]
+   7 000C 03 04	pop r3
+   8           	sym:
+   9 000E 10 00	.word val
+  10           	val:
+  11 0010 21 43	.word 0x4321
