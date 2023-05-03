@@ -1,23 +1,87 @@
-P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Trab3\Trab3.lst	Wed May 03 09:27:41 2023
+P16 assembler v1.4.0 (Mar  6 2023)	.\Trab3.lst	Wed May 03 18:00:31 2023
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      0012 18
+0       .startup        0000      003A 58
+1       .data           003A      0000 0
+2       .bss            003A      0000 0
+3       .stack          003A      0042 66
 
 Symbols
 Name                    Type      Value       Section
-sym                     LABEL     000E 14     .text
-val                     LABEL     0010 16     .text
+_start                  LABEL     0004 4      .startup
+change_output_port      LABEL     001E 30     .startup
+in_port_addr            LABEL     0036 54     .startup
+INPORT_ADDRESS          ABSOLUTE  F000 61440  .startup
+line#14                 LABEL     000C 12     .startup
+line#7                  LABEL     0002 2      .startup
+main                    LABEL     0012 18     .startup
+main_addr               LABEL     0010 16     .startup
+out_port_addr           LABEL     0038 56     .startup
+OUTPORT_ADDRESS         ABSOLUTE  E000 57344  .startup
+STACK_SIZE              ABSOLUTE  0040 64     .startup
+tos                     LABEL     007A 122    .stack
+tos_addr                LABEL     000E 14     .startup
+zero                    LABEL     0030 48     .startup
 
 Code listing
-   1 0000 60 0C	ldr r0, sym
-   2 0002 12 3A	strb r2, [ r1, r4 ]
-   3 0004 01 24	push r1
-   4 0006 02 24	push r2
-   5 0008 80 B7	mov r0, r15
-   6 000A 05 00	ldr r5, [ r0, #0]
-   7 000C 03 04	pop r3
-   8           	sym:
-   9 000E 10 00	.word val
-  10           	val:
-  11 0010 21 43	.word 0x4321
+   1          	.equ STACK_SIZE, 64
+   2          	.equ INPORT_ADDRESS,  0xF000
+   3          	.equ OUTPORT_ADDRESS, 0xE000
+   4           	
+   5           	.section .startup   
+   6 0000 01 58	    b _start
+   7 0002 FF 5B	    b .
+   8           	
+   9           	_start:
+  10 0004 4D 0C	    ldr sp, tos_addr
+  11 0006 80 B7	    mov r0, pc
+  12 0008 0E A2	    add lr, r0, #4
+  13 000A 2F 0C	    ldr pc, main_addr
+  14 000C FF 5B	    b .
+  15           	
+  16           	tos_addr:
+  17 000E 7A 00	    .word tos
+  18           	
+  19           	main_addr:
+  20 0010 12 00	    .word main
+  21           	
+  22           	main:
+  23 0012 10 0D	    ldr r0, in_port_addr
+  24 0014 01 08	    ldrb r1, [r0, #0]
+  25 0016 12 60	    mov r2, #0x01
+  26 0018 10 C1	    and r0, r1, r2
+  27 001A 01 44	    bne change_output_port
+  28 001C FA 5B	    b main
+  29           	
+  30           	change_output_port:
+  31 001E 91 E8	    lsr r1, r1, #1
+  32 0020 00 64	    mov r0, #0x40
+  33 0022 82 C0	    and r2, r0, r1
+  34 0024 05 44	    bne zero
+  35 0026 01 68	    mov r1, #0x80
+  36 0028 80 80	    add r0, r0, r1
+  37 002A 61 0C	    ldr	r1, out_port_addr
+  38 002C 10 20		str r0, [r1, #0]
+  39 002E F1 5B		b main
+  40           	zero:
+  41 0030 01 60	    mov r1, #0
+  42 0032 80 80	    add r0, r0, r1
+  43 0034 EE 5B	    b main
+  44           	
+  45           	in_port_addr:
+  46 0036 00 F0	    .word INPORT_ADDRESS
+  47           	
+  48           	out_port_addr:
+  49 0038 00 E0	    .word OUTPORT_ADDRESS
+  50           	.data
+  51           	
+  52           	.section .bss
+  53           	    
+  54           	.section .stack
+  55 003A 00   	.space STACK_SIZE
+  55 .... ..
+  55 0079 00
+  56           	tos:
+  57 007A 00 80	    .word 0x8000 ; o stack começa no fim da RAM
+  58           	
