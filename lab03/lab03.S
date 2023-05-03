@@ -37,14 +37,34 @@ main_addr:
 ; Saidas:    *** Para completar ***
 ; Efeitos:   *** Para completar ***
 main:
-	mov	r0, #0xFF
-	bl	outport_write
-	mov	r0, #0x00
-	bl	outport_write
+	;mov	r0, #0x80
+	;bl	outport_write
+	mov r5, #0
 loop:
 	bl	inport_read
-	bl	outport_write
+	mov r3, r0
+	mov r4, #0x80
+	and r3, r3, r4
+	bne pisca
+	mov r0, #0
+	bl outport_write
 	b	loop
+
+pisca:
+	mvn r0, r0
+	mov r1, #0x07
+	and r0, r0, r1
+	add r2, r0, r0
+	add r2, r2, r2
+	add r0, r2, r0
+	bl sleep
+	mvn r5, r5
+	mov r2, #0x01
+	and r0, r5, r2
+	mov r3, #0x80 
+	add r0, r0, r3
+	bl	outport_write
+	b loop
 
 ; Rotina:    inport_read
 ; Descricao: *** Para completar ***

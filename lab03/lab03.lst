@@ -1,32 +1,33 @@
-P16 assembler v1.4.0 (Mar  6 2023)	lab03.lst	Wed May 03 11:40:13 2023
+P16 assembler v1.4.0 (Mar  6 2023)	.\lab03.lst	Wed May 03 13:27:04 2023
 
 Sections
 Index   Name            Address   Size
 0       startup         0000      000C 12
-1       .text           000C      0030 48
-2       .data           003C      0000 0
-3       .bss            003C      0000 0
-4       .stack          003C      0040 64
+1       .text           000C      0050 80
+2       .data           005C      0000 0
+3       .bss            005C      0000 0
+4       .stack          005C      0040 64
 
 Symbols
 Name                    Type      Value       Section
 _start                  LABEL     0004 4      startup
-inport_addr             LABEL     0020 32     .text
+inport_addr             LABEL     0040 64     .text
 INPORT_ADDRESS          ABSOLUTE  FF80 65408  startup
-inport_read             LABEL     001A 26     .text
+inport_read             LABEL     003A 58     .text
 line#19                 LABEL     0002 2      startup
-loop                    LABEL     0014 20     .text
+loop                    LABEL     000E 14     .text
 main                    LABEL     000C 12     .text
 main_addr               LABEL     000A 10     startup
-outport_addr            LABEL     0028 40     .text
+outport_addr            LABEL     0048 72     .text
 OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  startup
-outport_write           LABEL     0022 34     .text
-sleep                   LABEL     002A 42     .text
-sleep_end               LABEL     003A 58     .text
-sleep_inner_loop        LABEL     0032 50     .text
-sleep_outer_loop        LABEL     002E 46     .text
+outport_write           LABEL     0042 66     .text
+pisca                   LABEL     001E 30     .text
+sleep                   LABEL     004A 74     .text
+sleep_end               LABEL     005A 90     .text
+sleep_inner_loop        LABEL     0052 82     .text
+sleep_outer_loop        LABEL     004E 78     .text
 STACK_SIZE              ABSOLUTE  0040 64     startup
-tos                     LABEL     007C 124    .stack
+tos                     LABEL     009C 156    .stack
 tos_addr                LABEL     0008 8      startup
 
 Code listing
@@ -54,7 +55,7 @@ Code listing
   22 0006 1F 0C		ldr	pc, main_addr
   23           	
   24           	tos_addr:
-  25 0008 7C 00		.word	tos
+  25 0008 9C 00		.word	tos
   26           	main_addr:
   27 000A 0C 00		.word	main
   28           	
@@ -69,75 +70,95 @@ Code listing
   37           	; Saidas:    *** Para completar ***
   38           	; Efeitos:   *** Para completar ***
   39           	main:
-  40 000C F0 6F		mov	r0, #0xFF
-  41 000E 09 5C		bl	outport_write
-  42 0010 00 60		mov	r0, #0x00
-  43 0012 07 5C		bl	outport_write
-  44           	loop:
-  45 0014 02 5C		bl	inport_read
-  46 0016 05 5C		bl	outport_write
-  47 0018 FD 5B		b	loop
-  48           	
-  49           	; Rotina:    inport_read
-  50           	; Descricao: *** Para completar ***
-  51           	; Entradas:  -
-  52           	; Saidas:    r0 - *** Para completar ***
-  53           	; Efeitos:   r1 - *** Para completar ***
-  54           	inport_read:
-  55 001A 21 0C		ldr	r1, inport_addr
-  56 001C 10 08		ldrb	r0, [r1, #0]
-  57 001E 0F B7		mov	pc, lr
-  58           	
-  59           	inport_addr:
-  60 0020 80 FF		.word	INPORT_ADDRESS
-  61           	
-  62           	; Rotina:    outport_write
-  63           	; Descricao: *** Para completar ***
-  64           	; Entradas:  r0 - *** Para completar ***
-  65           	; Saidas:    -
-  66           	; Efeitos:   r1 - *** Para completar ***
-  67           	outport_write:
-  68 0022 21 0C		ldr	r1, outport_addr
-  69 0024 10 28		strb	r0, [r1, #0]
-  70 0026 0F B7		mov	pc, lr
-  71           	
-  72           	outport_addr:
-  73 0028 C0 FF		.word	OUTPORT_ADDRESS
-  74           	
-  75           	; Rotina:    sleep
-  76           	; Descricao: *** Para completar ***
-  77           	; Entradas:  *** Para completar ***
-  78           	; Saidas:    *** Para completar ***
-  79           	; Efeitos:   *** Para completar ***
-  80           	sleep:
-  81 002A 00 C0		and	r0, r0, r0
-  82 002C 06 40		beq	sleep_end
-  83           	sleep_outer_loop:
-  84 002E E1 63		mov	r1, #0x3E
-  85 0030 31 70		movt	r1, #0x03
-  86           	sleep_inner_loop:
-  87 0032 91 A8		sub	r1, r1, #1
-  88 0034 FE 47		bne	sleep_inner_loop
-  89 0036 80 A8		sub	r0, r0, #1
-  90 0038 FA 47		bne	sleep_outer_loop
-  91           	sleep_end:
-  92 003A 0F B7		mov	pc, lr
-  93           	
-  94           	; Seccao:    data
-  95           	; Descricao: Guarda as variáveis globais com um valor inicial definido
-  96           	;
-  97           		.data
-  98           	
-  99           	; Seccao:    bss
- 100           	; Descricao: Guarda as variáveis globais sem valor inicial definido
- 101           	;
- 102           		.bss
- 103           	
- 104           	; Seccao:    stack
- 105           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
- 106           	;
- 107           		.stack
- 108 003C 00   		.space	STACK_SIZE
- 108 .... ..
- 108 007B 00
- 109           	tos:
+  40           		;mov	r0, #0x80
+  41           		;bl	outport_write
+  42 000C 05 60		mov r5, #0
+  43           	loop:
+  44 000E 15 5C		bl	inport_read
+  45 0010 03 B0		mov r3, r0
+  46 0012 04 68		mov r4, #0x80
+  47 0014 33 C2		and r3, r3, r4
+  48 0016 03 44		bne pisca
+  49 0018 00 60		mov r0, #0
+  50 001A 13 5C		bl outport_write
+  51 001C F8 5B		b	loop
+  52           	
+  53           	pisca:
+  54 001E 10 B0		mvn r0, r0
+  55 0020 71 60		mov r1, #0x07
+  56 0022 80 C0		and r0, r0, r1
+  57 0024 02 80		add r2, r0, r0
+  58 0026 22 81		add r2, r2, r2
+  59 0028 20 80		add r0, r2, r0
+  60 002A 0F 5C		bl sleep
+  61 002C 95 B2		mvn r5, r5
+  62 002E 12 60		mov r2, #0x01
+  63 0030 50 C1		and r0, r5, r2
+  64 0032 03 68		mov r3, #0x80 
+  65 0034 80 81		add r0, r0, r3
+  66 0036 05 5C		bl	outport_write
+  67 0038 EA 5B		b loop
+  68           	
+  69           	; Rotina:    inport_read
+  70           	; Descricao: *** Para completar ***
+  71           	; Entradas:  -
+  72           	; Saidas:    r0 - *** Para completar ***
+  73           	; Efeitos:   r1 - *** Para completar ***
+  74           	inport_read:
+  75 003A 21 0C		ldr	r1, inport_addr
+  76 003C 10 08		ldrb	r0, [r1, #0]
+  77 003E 0F B7		mov	pc, lr
+  78           	
+  79           	inport_addr:
+  80 0040 80 FF		.word	INPORT_ADDRESS
+  81           	
+  82           	; Rotina:    outport_write
+  83           	; Descricao: *** Para completar ***
+  84           	; Entradas:  r0 - *** Para completar ***
+  85           	; Saidas:    -
+  86           	; Efeitos:   r1 - *** Para completar ***
+  87           	outport_write:
+  88 0042 21 0C		ldr	r1, outport_addr
+  89 0044 10 28		strb	r0, [r1, #0]
+  90 0046 0F B7		mov	pc, lr
+  91           	
+  92           	outport_addr:
+  93 0048 C0 FF		.word	OUTPORT_ADDRESS
+  94           	
+  95           	; Rotina:    sleep
+  96           	; Descricao: *** Para completar ***
+  97           	; Entradas:  *** Para completar ***
+  98           	; Saidas:    *** Para completar ***
+  99           	; Efeitos:   *** Para completar ***
+ 100           	sleep:
+ 101 004A 00 C0		and	r0, r0, r0
+ 102 004C 06 40		beq	sleep_end
+ 103           	sleep_outer_loop:
+ 104 004E E1 63		mov	r1, #0x3E
+ 105 0050 31 70		movt	r1, #0x03
+ 106           	sleep_inner_loop:
+ 107 0052 91 A8		sub	r1, r1, #1
+ 108 0054 FE 47		bne	sleep_inner_loop
+ 109 0056 80 A8		sub	r0, r0, #1
+ 110 0058 FA 47		bne	sleep_outer_loop
+ 111           	sleep_end:
+ 112 005A 0F B7		mov	pc, lr
+ 113           	
+ 114           	; Seccao:    data
+ 115           	; Descricao: Guarda as variáveis globais com um valor inicial definido
+ 116           	;
+ 117           		.data
+ 118           	
+ 119           	; Seccao:    bss
+ 120           	; Descricao: Guarda as variáveis globais sem valor inicial definido
+ 121           	;
+ 122           		.bss
+ 123           	
+ 124           	; Seccao:    stack
+ 125           	; Descricao: Implementa a pilha com o tamanho definido pelo simbolo STACK_SIZE
+ 126           	;
+ 127           		.stack
+ 128 005C 00   		.space	STACK_SIZE
+ 128 .... ..
+ 128 009B 00
+ 129           	tos:
