@@ -15,7 +15,7 @@
 	.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco do porto de saida
 
 ; *** Inicio de troco para completar ***
-	.equ	FED_ADDRESS, 0x????           ; ??
+	.equ	FED_ADDRESS, 0xFF40          ; ??
 ; *** Fim de troco para completar ***
 
 	.equ	VAR_INIT_VAL, 0               ; Valor inicial de var
