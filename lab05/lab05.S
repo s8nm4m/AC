@@ -32,7 +32,7 @@
 	.equ	PTC_CMD_STOP, 1               ; Comando para parar a contagem no pTC
 
 ; *** Inicio de troco para completar ***
-	.equ	SYSCLK_FREQ, 0x??             ; Intervalo de contagem do circuito pTC
+	.equ	SYSCLK_FREQ, 0x64             ; Intervalo de contagem do circuito pTC
                                           ; que suporta a implementação do sysclk
 ; *** Fim de troco para completar ***
 
@@ -79,6 +79,9 @@ main:
 	mov	r1, #CPSR_BIT_I
 	orr	r0, r0, r1
 	msr	cpsr, r0
+	ldr r0, sysclk_addr
+	mov r1, #0
+	str r1, [r0, r1]
 main_loop:
 	mov	r0, #LED0_MASK
 	bl	outport_set_bits
@@ -95,10 +98,22 @@ main_loop:
 ;            do valor da variável global sysclk. O tempo a esperar, em
 ;            centenas de milissegundos, e passado em R0.
 ;            Interface exemplo: void delay( uint16_t hms );
-; Entradas:  *** Para completar ***
+; Entradas:  R0 - hms milissegundos
 ; Saidas:    -
 ; Efeitos:   -
 delay:
+	and	r0, r0, r0
+	beq	delay_end
+delay_outer_loop:
+	mov	r1, #0x3E
+	movt	r1, #0x03
+delay_inner_loop:
+	sub	r1, r1, #1
+	bne	delay_inner_loop
+	sub	r0, r0, #1
+	bne	delay_outer_loop
+delay_end:
+	mov	pc, lr
 ; *** Inicio de troco para completar ***
 
 ; *** Fim de troco para completar ***
@@ -107,14 +122,15 @@ delay:
 ; Descricao: Devolve o valor corrente da variável global sysclk.
 ;            Interface exemplo: uint16_t sysclk_get_ticks ( );
 ; Entradas:  -
-; Saidas:    *** Para completar ***
+; Saidas:    R0 - valor da variável global sysclk.
 ; Efeitos:   -
 sysclk_get_ticks:
 ; *** Inicio de troco para completar ***
-	mov r0 , sysclk
-	ldr r0, [sysclk, #0]
+	ldr r0 , sysclk_addr
+	ldr r0, [r0, #0]
 	mov pc, lr
 ; *** Fim de troco para completar ***
+
 
 ; Rotina:    isr
 ; Descricao: Incrementa o valor da variável global sysclk.
@@ -123,9 +139,19 @@ sysclk_get_ticks:
 ; Efeitos:   *** Para completar ***
 isr:
 ; *** Inicio de troco para completar ***
-
+	push r0
+	push r1
+	ldr r0, sysclk_addr
+	ldr r1, [r0,#0]
+	add r1, r1, #1
+	str r1, [r0, #0]
+	pop r1
+	pop r0
+	movs pc, lr
 ; *** Fim de troco para completar ***
 
+sysclk_addr:
+	.word sysclk
 ; Gestor de periférico para o porto de entrada
 ;
 
@@ -261,6 +287,10 @@ ptc_init:
 	mov r1, #PTC_ADDRESS & 0xFF
     movt r1, #(PTC_ADDRESS >> 8) & 0xFF
     strb r0, [r1, #PTC_TMR]
+	mov r0, #0
+	strb r0, [r1, #PTC_TIR]
+	strb r0, [r1, #PTC_TC]
+	bl ptc_start
     mov pc, lr
 ; *** Fim de troco para completar ***
 
