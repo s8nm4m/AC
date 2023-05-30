@@ -16,7 +16,7 @@
 	; Definicoes do porto de saida
 	.equ	OUTPORT_ADDRESS, 0xFFC0       ; Endereco do porto de saida
 
-	.equ	OUTPORT_INIT_VAL, 0           ; Valor inicial do porto de saida
+	.equ	OUTPORT_INIT_VAL, 1           ; Valor inicial do porto de saida
 
 	; Definicoes do circuito pTC
 ; *** Inicio de troco para completar ***
@@ -32,7 +32,7 @@
 	.equ	PTC_CMD_STOP, 1               ; Comando para parar a contagem no pTC
 
 ; *** Inicio de troco para completar ***
-	.equ	SYSCLK_FREQ, 0x64             ; Intervalo de contagem do circuito pTC
+	.equ	SYSCLK_FREQ, 99             ; Intervalo de contagem do circuito pTC
                                           ; que suporta a implementação do sysclk
 ; *** Fim de troco para completar ***
 
@@ -82,16 +82,52 @@ main:
 	ldr r0, sysclk_addr
 	mov r1, #0
 	str r1, [r0, r1]
+	b i7check
+
 main_loop:
-	mov	r0, #LED0_MASK
+	;bl i7check
+	ldr	r0, led_addr
+	ldr r0, [r0, #0]
 	bl	outport_set_bits
-	mov	r0, #BLINK_TIME
+	bl get_time
 	bl	delay
-	mov	r0, #LED0_MASK
+	ldr	r0, led_addr
+	ldr r0, [r0, #0]
 	bl	outport_clear_bits
-	mov	r0, #BLINK_TIME
+	bl get_time
 	bl	delay
-	b	main_loop
+	bl led_shift
+	b i7check
+	;b	main_loop
+
+get_time:
+	push lr
+	bl inport_read
+	pop lr
+	mov r1, #7
+	and r0, r0, r1
+	mov pc, lr
+
+led_shift:
+	ldr r0, led_addr
+	ldr r1, [r0, #0]
+	lsl r1, r1, #1
+	str r1, [r0, #0]
+	mov pc, lr
+
+led_addr:
+	.word led
+
+i7check:
+	push lr
+	bl inport_read
+	pop lr
+	mov r1, #0x80
+	and r0, r0, r1
+	mov r1, #0
+	cmp r0, r1
+	beq main_loop
+	b i7check
 
 ; Rotina:    delay
 ; Descricao: Rotina bloqueante que realiza uma espera ativa por teste sucessivo
@@ -141,6 +177,8 @@ isr:
 ; *** Inicio de troco para completar ***
 	push r0
 	push r1
+	ldr r0, ptc_addr
+	strb r0, [r0, #PTC_TIR]
 	ldr r0, sysclk_addr
 	ldr r1, [r0,#0]
 	add r1, r1, #1
@@ -152,6 +190,9 @@ isr:
 
 sysclk_addr:
 	.word sysclk
+
+ptc_addr:
+	.word PTC_ADDRESS
 ; Gestor de periférico para o porto de entrada
 ;
 
@@ -284,13 +325,16 @@ ptc_get_value:
 ;            o pedido de interrupcao eventualmente pendente.
 ptc_init:
 ; *** Inicio de troco para completar ***
+	push lr
+	push r0
+	bl ptc_stop
+	pop r0
 	mov r1, #PTC_ADDRESS & 0xFF
     movt r1, #(PTC_ADDRESS >> 8) & 0xFF
     strb r0, [r1, #PTC_TMR]
-	mov r0, #0
 	strb r0, [r1, #PTC_TIR]
-	strb r0, [r1, #PTC_TC]
 	bl ptc_start
+	pop lr
     mov pc, lr
 ; *** Fim de troco para completar ***
 
@@ -301,7 +345,8 @@ PTC_ADDR:
 ; Descricao: Guarda as variáveis globais com um valor inicial definido
 ;
 	.data
-
+led:
+	.word 1
 ; Seccao:    bss
 ; Descricao: Guarda as variáveis globais sem valor inicial definido
 ;
