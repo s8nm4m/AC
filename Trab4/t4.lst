@@ -1,10 +1,117 @@
-P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Trab4\t4.lst	Tue May 30 15:07:40 2023
+P16 assembler v1.4.0 (Mar  6 2023)	c:\Users\ammit\Desktop\ISEL\2223\LEIC\s2\AC\AC\Trab4\t4.lst	Wed May 31 13:58:27 2023
 
 Sections
 Index   Name            Address   Size
-0       .text           0000      0000 0
+0       .startup        0000      000E 14
+1       .text           000E      002E 46
+2       .data           003C      0000 0
+3       .bss            003C      0000 0
+4       .stack          003C      0040 64
 
 Symbols
 Name                    Type      Value       Section
+_start                  LABEL     0004 4      .startup
+inport_addr             LABEL     002A 42     .text
+INPORT_ADDRESS          ABSOLUTE  FF80 65408  .startup
+inport_read             LABEL     0024 36     .text
+isr                     LABEL     001A 26     .text
+isr_addr                LABEL     000C 12     .startup
+main                    LABEL     000E 14     .text
+main_addr               LABEL     000A 10     .startup
+outport_addr            LABEL     003A 58     .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .startup
+outport_init            LABEL     002C 44     .text
+outport_write           LABEL     0034 52     .text
+PTC_ADDRESS             ABSOLUTE  FF78 65400  .startup
+PTC_TC                  ABSOLUTE  0004 4      .startup
+PTC_TCR                 ABSOLUTE  0000 0      .startup
+PTC_TIR                 ABSOLUTE  0006 6      .startup
+PTC_TMR                 ABSOLUTE  0002 2      .startup
+RESULT                  ABSOLUTE  00FE 254    .startup
+STACK_SIZE              ABSOLUTE  0040 64     .startup
+STIMULUS                ABSOLUTE  0001 1      .startup
+TIME                    ABSOLUTE  00F0 240    .startup
+tos                     LABEL     007C 124    .stack
+tos_addr                LABEL     0008 8      .startup
+USER                    ABSOLUTE  0001 1      .startup
 
 Code listing
+   1          	.equ STACK_SIZE, 64
+   2          	.equ INPORT_ADDRESS, 0xFF80
+   3          	.equ OUTPORT_ADDRESS, 0xFFC0
+   4          	.equ PTC_ADDRESS, 0xFF78
+   5          	.equ PTC_TCR, 0
+   6          	.equ PTC_TMR, 2
+   7          	.equ PTC_TC, 4
+   8          	.equ PTC_TIR, 6 
+   9          	.equ USER, 0x01
+  10          	.equ STIMULUS, 0x01
+  11          	.equ TIME, 0xF0
+  12          	.equ RESULT, 0xFE
+  13           	
+  14           	.section .startup
+  15 0000 01 58	    b _start
+  16 0002 4F 0C	    ldr pc, isr_addr
+  17           	
+  18           	_start:
+  19 0004 1D 0C	    ldr sp, tos_addr
+  20 0006 1F 0C	    ldr pc, main_addr
+  21           	
+  22           	tos_addr:
+  23 0008 7C 00	    .word tos
+  24           	
+  25           	main_addr:
+  26 000A 0E 00	    .word main
+  27           	
+  28           	isr_addr:
+  29 000C 1A 00	    .word isr
+  30           	
+  31           	.text
+  32           	
+  33           	main:
+  34 000E 60 B0	    mrs r0, cpsr ; lê valor actual do cpsr
+  35 0010 01 61	    mov r1, #0x10 ; mask do bit a activar IE
+  36 0012 80 C8	    orr r0, r0, r1 ; junta aos outros bits de estado
+  37 0014 40 B0	    msr cpsr, r0 ; carrega novo cpsr
+  38 0016 0A 5C	    bl outport_init
+  39 0018 FA 5B	    b main
+  40           	
+  41           	isr:
+  42 001A 00 24	    push r0
+  43 001C 01 24	    push r1
+  44           	
+  45 001E 01 04	    pop r1
+  46 0020 00 04	    pop r0
+  47 0022 20 B0	    movs pc, lr
+  48           	
+  49           	inport_read:
+  50 0024 21 0C		ldr	r1, inport_addr
+  51 0026 10 08		ldrb	r0, [r1, #0]
+  52 0028 0F B7		mov	pc, lr
+  53           	
+  54           	inport_addr:
+  55 002A 80 FF		.word	INPORT_ADDRESS
+  56           	
+  57           	outport_init:
+  58 002C 0E 24	    push lr
+  59 002E F0 6F	    mov r0, #0xFF
+  60 0030 01 5C	    bl outport_write
+  61 0032 0F 04	    pop pc
+  62           	
+  63           	outport_write:
+  64 0034 21 0C		ldr	r1, outport_addr
+  65 0036 10 28		strb	r0, [r1, #0]
+  66 0038 0F B7		mov	pc, lr
+  67           	
+  68           	outport_addr:
+  69 003A C0 FF		.word	OUTPORT_ADDRESS
+  70           	
+  71           	.data
+  72           	
+  73           	.bss
+  74           	
+  75           	    .stack
+  76 003C 00   	    .space STACK_SIZE
+  76 .... ..
+  76 007B 00
+  77           	tos:
