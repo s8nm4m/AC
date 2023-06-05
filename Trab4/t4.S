@@ -110,7 +110,74 @@ setup_test:
     b test
 
 test:
+    mov r0, #128
+    bl ptc_init
+    bl test_1
+    ldr r0, outport_addr
+    ldr r0, [r0]
+    sub r0, r0, #1
+    bl outport_write
+    bl test_2
     b .
+
+test_1:
+    push lr
+    mov r0, algo2
+    bl delay
+    bl sysclk_get_ticks
+    mov r1, algo3
+    cmp r0, r1
+    bne test_1
+    bl ptc_stop
+    pop pc 
+
+test_2:
+    push lr 
+    bl reset_sysclk
+    bl ptc_start
+
+    pop pc
+
+reset_sysclk:
+    ldr r0, sysclk_addr
+    mov r1, #0
+    str r1, [r0]
+    mov pc, lr
+
+sysclk_get_ticks:
+	ldr r0 , sysclk_addr
+	ldr r0, [r0, #0]
+	mov pc, lr
+
+ptc_init:
+	push lr
+	push r0
+	bl ptc_stop
+	pop r0
+	mov r1, #PTC_ADDRESS & 0xFF
+    movt r1, #(PTC_ADDRESS >> 8) & 0xFF
+    strb r0, [r1, #PTC_TMR]
+	strb r0, [r1, #PTC_TIR]
+	bl ptc_start
+	pop lr
+    mov pc, lr
+
+ptc_start:
+	ldr	r0, PTC_ADDR
+	mov	r1, #PTC_CMD_START
+	strb	r1, [r0, #PTC_TCR]
+	mov	pc, lr
+
+ptc_stop:
+	ldr	r0, PTC_ADDR
+	mov	r1, #PTC_CMD_STOP
+	strb	r1, [r0, #PTC_TCR]
+	mov	pc, lr
+
+ptc_get_value:
+	ldr	r1, PTC_ADDR
+	ldrb	r0, [r1, #PTC_TC]
+	mov	pc, lr
 
 stimulus_init_val:
     .word STIMULUS
