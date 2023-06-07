@@ -1,54 +1,77 @@
-P16 assembler v1.4.0 (Mar  6 2023)	d:\ISEL\2223\LEIC\s2\AC\Trab4\t4.lst	Mon Jun 05 23:13:31 2023
+P16 assembler v1.4.0 (Mar  6 2023)	.\t4.lst	Wed Jun 07 12:40:08 2023
 
 Sections
 Index   Name            Address   Size
 0       .startup        0000      000E 14
-1       .text           000E      00A2 162
-2       .data           00B0      0000 0
-3       .bss            00B0      0002 2
-4       .stack          00B2      0040 64
+1       .text           000E      014A 330
+2       .data           0158      0000 0
+3       .bss            0158      0002 2
+4       .stack          015A      0040 64
 
 Symbols
 Name                    Type      Value       Section
 _start                  LABEL     0004 4      .startup
-delay                   LABEL     0042 66     .text
-delay_loop              LABEL     004E 78     .text
-init                    LABEL     0018 24     .text
-inport_addr             LABEL     0094 148    .text
+AVG_TIME                ABSOLUTE  00C8 200    .startup
+check_user              LABEL     0054 84     .text
+delay                   LABEL     003E 62     .text
+delay_end               LABEL     0052 82     .text
+delay_inner_loop        LABEL     0048 72     .text
+delay_outer_loop        LABEL     0044 68     .text
+get_time                LABEL     00B4 180    .text
+init                    LABEL     0010 16     .text
+inport_addr             LABEL     0142 322    .text
+inport_addr2            LABEL     0092 146    .text
 INPORT_ADDRESS          ABSOLUTE  FF80 65408  .startup
-inport_read             LABEL     008E 142    .text
-isr                     LABEL     005C 92     .text
+inport_read             LABEL     013C 316    .text
+isr                     LABEL     006C 108    .text
 isr_addr                LABEL     000C 12     .startup
-line#113                LABEL     0088 136    .text
 main                    LABEL     000E 14     .text
 main_addr               LABEL     000A 10     .startup
-outport_addr            LABEL     00AA 170    .text
+outport_addr            LABEL     0152 338    .text
+outport_addr2           LABEL     00A6 166    .text
 OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .startup
-outport_init            LABEL     0096 150    .text
-outport_write           LABEL     009E 158    .text
-ptc_addr                LABEL     00AE 174    .text
+outport_init            LABEL     0144 324    .text
+outport_write           LABEL     014C 332    .text
+PTC_ADDR                LABEL     0136 310    .text
+ptc_addr                LABEL     0156 342    .text
+ptc_addr2               LABEL     00A4 164    .text
 PTC_ADDRESS             ABSOLUTE  FF78 65400  .startup
+PTC_CMD_START           ABSOLUTE  0000 0      .startup
+PTC_CMD_STOP            ABSOLUTE  0001 1      .startup
+ptc_get_value           LABEL     0130 304    .text
+ptc_init                LABEL     010A 266    .text
+ptc_start               LABEL     0120 288    .text
+ptc_stop                LABEL     0128 296    .text
 PTC_TC                  ABSOLUTE  0004 4      .startup
 PTC_TCR                 ABSOLUTE  0000 0      .startup
 PTC_TIR                 ABSOLUTE  0006 6      .startup
 PTC_TMR                 ABSOLUTE  0002 2      .startup
+reset_sysclk            LABEL     00FC 252    .text
 RESULT                  ABSOLUTE  00FE 254    .startup
-result_init_val         LABEL     008C 140    .text
-setup_test              LABEL     0072 114    .text
+result_init_val         LABEL     013A 314    .text
+result_init_val2        LABEL     003A 58     .text
+setup_test              LABEL     0082 130    .text
+show_result             LABEL     00E2 226    .text
 STACK_SIZE              ABSOLUTE  0040 64     .startup
 STIMULUS                ABSOLUTE  0001 1      .startup
-stimulus_init_val       LABEL     008A 138    .text
-sysclk                  LABEL     00B0 176    .bss
-sysclk_addr             LABEL     00AC 172    .text
-sysclk_get_ticks        LABEL     00A4 164    .text
-test                    LABEL     0088 136    .text
+stimulus_init_val       LABEL     0138 312    .text
+stimulus_init_val2      LABEL     0090 144    .text
+stimulus_init_val3      LABEL     001A 26     .text
+sysclk                  LABEL     0158 344    .bss
+sysclk_addr             LABEL     0154 340    .text
+sysclk_addr2            LABEL     00A8 168    .text
+sysclk_get_ticks        LABEL     0104 260    .text
+test                    LABEL     0094 148    .text
+test_1                  LABEL     00AA 170    .text
+test_2                  LABEL     00C0 192    .text
 TIME                    ABSOLUTE  00F0 240    .startup
-tos                     LABEL     00F2 242    .stack
+tos                     LABEL     019A 410    .stack
 tos_addr                LABEL     0008 8      .startup
 USER                    ABSOLUTE  0001 1      .startup
-user_mask               LABEL     0040 64     .text
-wait0to1                LABEL     0030 48     .text
-wait1to0                LABEL     0022 34     .text
+user_mask               LABEL     003C 60     .text
+wait0to1                LABEL     002A 42     .text
+wait1to0                LABEL     001C 28     .text
+wait_user               LABEL     00D0 208    .text
 
 Code listing
    1          	.equ STACK_SIZE, 64
@@ -63,157 +86,285 @@ Code listing
   10          	.equ STIMULUS, 0x01
   11          	.equ TIME, 0xF0
   12          	.equ RESULT, 0xFE
-  13           	
-  14           	.section .startup
-  15 0000 01 58	    b _start
-  16 0002 4F 0C	    ldr pc, isr_addr
-  17           	
-  18           	_start:
-  19 0004 1D 0C	    ldr sp, tos_addr
-  20 0006 1F 0C	    ldr pc, main_addr
-  21           	
-  22           	tos_addr:
-  23 0008 F2 00	    .word tos
+  13          	.equ AVG_TIME, 200
+  14          	.equ	PTC_CMD_START, 0             
+  15          	.equ	PTC_CMD_STOP, 1
+  16           	
+  17           	.section .startup
+  18 0000 01 58	    b _start
+  19 0002 4F 0C	    ldr pc, isr_addr
+  20           	
+  21           	_start:
+  22 0004 1D 0C	    ldr sp, tos_addr
+  23 0006 1F 0C	    ldr pc, main_addr
   24           	
-  25           	main_addr:
-  26 000A 0E 00	    .word main
+  25           	tos_addr:
+  26 0008 9A 01	    .word tos
   27           	
-  28           	isr_addr:
-  29 000C 5C 00	    .word isr
+  28           	main_addr:
+  29 000A 0E 00	    .word main
   30           	
-  31           	.text
-  32           	
-  33           	main:
-  34 000E 60 B0	    mrs r0, cpsr ; lê valor actual do cpsr
-  35 0010 01 61	    mov r1, #0x10 ; mask do bit a activar IE
-  36 0012 80 C8	    orr r0, r0, r1 ; junta aos outros bits de estado
-  37 0014 40 B0	    msr cpsr, r0 ; carrega novo cpsr
-  38 0016 00 58	    b init
-  39           	
-  40           	init:
-  41 0018 80 0F	    ldr r0, stimulus_init_val
-  42 001A 81 0F	    ldr r1,  result_init_val
-  43 001C 80 C8	    orr r0, r0, r1
-  44 001E 3F 5C	    bl outport_write
-  45 0020 00 58	    b wait1to0
-  46           	
-  47           	wait1to0:
-  48 0022 E0 0C	    ldr r0, user_mask
-  49 0024 71 0F	    ldr r1, inport_addr
-  50 0026 12 00	    ldr r2, [r1, #0]
-  51 0028 00 C1	    and r0, r0, r2
-  52 002A 02 60	    mov r2, #0
-  53 002C 00 B9	    cmp r0, r2
-  54 002E F9 47	    bne wait1to0
-  55           	
-  56           	wait0to1:
-  57 0030 70 0C	    ldr r0, user_mask
-  58 0032 01 0F	    ldr r1, inport_addr
-  59 0034 12 00	    ldr r2, [r1, #0]
-  60 0036 00 C1	    and r0, r0, r2
-  61 0038 12 60	    mov r2, #1
-  62 003A 00 B9	    cmp r0, r2
-  63 003C F9 47	    bne wait0to1
-  64 003E 19 58	    b setup_test
-  65           	
-  66           	user_mask:
-  67 0040 01 00	    .word USER
-  68           	
-  69           	delay:
-  70 0042 0E 24	    push lr
-  71 0044 04 24	    push r4
-  72 0046 05 24	    push r5
-  73 0048 04 B0	    mov r4, r0
-  74 004A 2C 5C	    bl sysclk_get_ticks
-  75 004C 05 B0	    mov r5, r0
-  76           	
-  77           	delay_loop:
-  78 004E 2A 5C	    bl sysclk_get_ticks
-  79 0050 80 8A	    sub r0, r0 ,r5
-  80 0052 00 BA	    cmp r0, r4
-  81 0054 FC 4B	    blo delay_loop
-  82 0056 05 04	    pop r5
-  83 0058 04 04	    pop r4
-  84 005A 0F 04	    pop pc
-  85           	
-  86           	isr:
-  87 005C 00 24	    push r0
-  88 005E 01 24	    push r1
-  89 0060 60 0E	    ldr r0, ptc_addr
-  90 0062 00 2B		strb r0, [r0, #PTC_TIR]
-  91 0064 30 0E		ldr r0, sysclk_addr
-  92 0066 01 00		ldr r1, [r0,#0]
-  93 0068 91 A0		add r1, r1, #1
-  94 006A 01 20		str r1, [r0, #0]
-  95 006C 01 04	    pop r1
-  96 006E 00 04	    pop r0
-  97 0070 20 B0	    movs pc, lr
-  98           	
-  99           	setup_test:
- 100 0072 B1 0D	    ldr r1, outport_addr
- 101 0074 10 00	    ldr r0, [r1, #0]
- 102 0076 10 B0	    mvn r0, r0
- 103 0078 82 0C	    ldr r2, stimulus_init_val
- 104 007A 00 81	    add r0, r0, r2
- 105 007C 10 5C	    bl outport_write
- 106 007E A1 0C	    ldr r1, inport_addr
- 107 0080 10 00	    ldr r0, [r1, #0]
- 108 0082 41 0D	    ldr r1, sysclk_addr
- 109 0084 10 20	    str r0, [r1, #0]
- 110 0086 00 58	    b test
- 111           	
- 112           	test:
- 113 0088 FF 5B	    b .
- 114           	
- 115           	stimulus_init_val:
- 116 008A 01 00	    .word STIMULUS
- 117           	
- 118           	result_init_val:
- 119 008C FE 00	    .word RESULT
- 120           	
- 121           	inport_read:
- 122 008E 21 0C		ldr	r1, inport_addr
- 123 0090 10 08		ldrb	r0, [r1, #0]
- 124 0092 0F B7		mov	pc, lr
+  31           	isr_addr:
+  32 000C 6C 00	    .word isr
+  33           	
+  34           	.text
+  35           	
+  36           	main:
+  37 000E 00 58	    b init
+  38           	
+  39           	init:
+  40 0010 40 0C	    ldr r0, stimulus_init_val3
+  41 0012 31 0D	    ldr r1,  result_init_val2
+  42 0014 80 C8	    orr r0, r0, r1
+  43 0016 9A 5C	    bl outport_write
+  44 0018 01 58	    b wait1to0
+  45           	
+  46           	stimulus_init_val3:
+  47 001A 01 00	    .word STIMULUS
+  48           	
+  49           	wait1to0:
+  50 001C F0 0C	    ldr r0, user_mask
+  51 001E 91 0F	    ldr r1, inport_addr2
+  52 0020 12 00	    ldr r2, [r1, #0]
+  53 0022 00 C1	    and r0, r0, r2
+  54 0024 02 60	    mov r2, #0
+  55 0026 00 B9	    cmp r0, r2
+  56 0028 F9 47	    bne wait1to0
+  57           	
+  58           	wait0to1:
+  59 002A 80 0C	    ldr r0, user_mask
+  60 002C 21 0F	    ldr r1, inport_addr2
+  61 002E 12 00	    ldr r2, [r1, #0]
+  62 0030 00 C1	    and r0, r0, r2
+  63 0032 12 60	    mov r2, #1
+  64 0034 00 B9	    cmp r0, r2
+  65 0036 F9 47	    bne wait0to1
+  66 0038 24 58	    b setup_test
+  67           	
+  68           	result_init_val2:
+  69 003A FE 00	    .word RESULT
+  70           	
+  71           	user_mask:
+  72 003C 01 00	    .word USER
+  73           	
+  74           	delay:
+  75 003E 0E 24	    push lr
+  76 0040 00 C0		and	r0, r0, r0
+  77 0042 07 40		beq	delay_end
+  78           	delay_outer_loop:
+  79 0044 01 65		mov	r1, #0x50
+  80 0046 31 7C		movt r1, #0xC3
+  81           	delay_inner_loop:
+  82 0048 91 A8		sub	r1, r1, #1
+  83 004A 04 5C	    bl check_user
+  84 004C FD 47		bne	delay_inner_loop
+  85 004E 80 A8		sub	r0, r0, #1
+  86 0050 F9 47		bne	delay_outer_loop
+  87           	delay_end:
+  88 0052 0F 04		pop pc
+  89           	
+  90           	check_user:
+  91 0054 0E 24	    push lr
+  92 0056 00 24	    push r0
+  93 0058 01 24	    push r1
+  94 005A 70 5C	    bl inport_read
+  95 005C 11 60	    mov r1, #USER
+  96 005E 80 C0	    and r0, r0, r1
+  97 0060 01 60	    mov r1, #0
+  98 0062 80 B8	    cmp r0, r1
+  99 0064 D5 43	    beq init
+ 100 0066 01 04	    pop r1
+ 101 0068 00 04	    pop r0
+ 102 006A 0F 04	    pop pc
+ 103           	
+ 104           	isr:
+ 105 006C 00 24	    push r0
+ 106 006E 01 24	    push r1
+ 107 0070 90 0D	    ldr r0, ptc_addr2
+ 108 0072 00 2B		strb r0, [r0, #PTC_TIR]
+ 109 0074 90 0D		ldr r0, sysclk_addr2
+ 110 0076 01 00		ldr r1, [r0,#0]
+ 111 0078 91 A0		add r1, r1, #1
+ 112 007A 01 20		str r1, [r0, #0]
+ 113 007C 01 04	    pop r1
+ 114 007E 00 04	    pop r0
+ 115 0080 20 B0	    movs pc, lr
+ 116           	
+ 117           	setup_test:
+ 118 0082 11 0D	    ldr r1, outport_addr2
+ 119 0084 10 00	    ldr r0, [r1, #0]
+ 120 0086 10 B0	    mvn r0, r0
+ 121 0088 32 0C	    ldr r2, stimulus_init_val2
+ 122 008A 00 81	    add r0, r0, r2
+ 123 008C 5F 5C	    bl outport_write
+ 124 008E 02 58	    b test
  125           	
- 126           	inport_addr:
- 127 0094 80 FF		.word	INPORT_ADDRESS
+ 126           	stimulus_init_val2:
+ 127 0090 01 00	    .word STIMULUS
  128           	
- 129           	outport_init:
- 130 0096 0E 24	    push lr
- 131 0098 F0 6F	    mov r0, #0xFF
- 132 009A 01 5C	    bl outport_write
- 133 009C 0F 04	    pop pc
- 134           	
- 135           	outport_write:
- 136 009E 51 0C		ldr	r1, outport_addr
- 137 00A0 10 28		strb	r0, [r1, #0]
- 138 00A2 0F B7		mov	pc, lr
- 139           	
- 140           	sysclk_get_ticks:
- 141 00A4 30 0C		ldr r0 , sysclk_addr
- 142 00A6 00 00		ldr r0, [r0, #0]
- 143 00A8 0F B7		mov pc, lr
+ 129           	inport_addr2:
+ 130 0092 80 FF	    .word INPORT_ADDRESS
+ 131           	
+ 132           	test:
+ 133 0094 0A 5C	    bl test_1
+ 134 0096 70 0C	    ldr r0, outport_addr2
+ 135 0098 00 00	    ldr r0, [r0]
+ 136 009A 80 A8	    sub r0, r0, #1
+ 137 009C 57 5C	    bl outport_write
+ 138 009E 10 5C	    bl test_2
+ 139 00A0 20 5C	    bl show_result
+ 140 00A2 B6 5B	    b init
+ 141           	
+ 142           	ptc_addr2:
+ 143 00A4 78 FF	    .word PTC_ADDRESS
  144           	
- 145           	outport_addr:
- 146 00AA C0 FF		.word	OUTPORT_ADDRESS
+ 145           	outport_addr2:
+ 146 00A6 C0 FF	    .word OUTPORT_ADDRESS
  147           	
- 148           	sysclk_addr:
- 149 00AC B0 00	    .word sysclk
+ 148           	sysclk_addr2:
+ 149 00A8 58 01	    .word sysclk
  150           	
- 151           	ptc_addr:
- 152 00AE 78 FF		.word PTC_ADDRESS
- 153           	
- 154           	.data
- 155           	
- 156           	.bss
- 157           	
- 158           	sysclk:
- 159 00B0 00   		.space	2
- 159 00B1 00
- 160           	
- 161           	    .stack
- 162 00B2 00   	    .space STACK_SIZE
- 162 .... ..
- 162 00F1 00
- 163           	tos:
+ 151           	test_1:
+ 152 00AA 0E 24	    push lr
+ 153           	   ; bl inport_read
+ 154           	    ;bl check_user
+ 155 00AC 03 5C	    bl get_time
+ 156 00AE 04 B0	    mov r4, r0
+ 157 00B0 C6 5F	    bl delay
+ 158 00B2 0F 04	    pop pc 
+ 159           	
+ 160           	get_time:
+ 161 00B4 0E 24	    push lr
+ 162 00B6 42 5C	    bl inport_read
+ 163 00B8 01 6F	    mov r1, #TIME
+ 164 00BA 80 C0	    and r0, r0, r1
+ 165 00BC 00 EA	    lsr r0, r0, #4
+ 166 00BE 0F 04	    pop pc
+ 167           	
+ 168           	test_2:
+ 169 00C0 0E 24	    push lr 
+ 170 00C2 60 B0	    mrs r0, cpsr ; lê valor actual do cpsr
+ 171 00C4 01 61	    mov r1, #0x10 ; mask do bit a activar IE
+ 172 00C6 80 C8	    orr r0, r0, r1 ; junta aos outros bits de estado
+ 173 00C8 40 B0	    msr cpsr, r0 ; carrega novo cpsr
+ 174 00CA 1F 5C	    bl ptc_init
+ 175 00CC 01 5C	    bl wait_user
+ 176 00CE 0F 04	    pop pc
+ 177           	
+ 178           	wait_user:
+ 179 00D0 0E 24	    push lr
+ 180 00D2 34 5C	    bl inport_read
+ 181 00D4 11 60	    mov r1, #USER
+ 182 00D6 80 C0	    and r0, r0, r1
+ 183 00D8 01 60	    mov r1, #0
+ 184 00DA 80 B8	    cmp r0, r1
+ 185 00DC 02 40	    beq show_result
+ 186 00DE F8 5B	    b wait_user
+ 187 00E0 0F 04	    pop pc
+ 188           	
+ 189           	show_result:
+ 190 00E2 0E 24	    push lr
+ 191 00E4 0F 5C	    bl sysclk_get_ticks
+ 192 00E6 02 B0	    mov r2, r0
+ 193 00E8 1F 5C	    bl ptc_stop
+ 194 00EA 80 6C	    mov r0, #AVG_TIME
+ 195 00EC 20 88	    sub r0, r2, r0
+ 196 00EE 80 E0	    lsl r0, r0, #1
+ 197 00F0 E1 6F	    mov r1, #RESULT
+ 198 00F2 80 C0	    and r0, r0, r1
+ 199 00F4 2B 5C	    bl outport_write
+ 200 00F6 50 60	    mov r0, #5
+ 201 00F8 A2 5F	    bl delay
+ 202 00FA 0F 04	    pop pc
+ 203           	
+ 204           	reset_sysclk:
+ 205 00FC B0 0E	    ldr r0, sysclk_addr
+ 206 00FE 01 60	    mov r1, #0
+ 207 0100 01 20	    str r1, [r0]
+ 208 0102 0F B7	    mov pc, lr
+ 209           	
+ 210           	sysclk_get_ticks:
+ 211 0104 70 0E		ldr r0 , sysclk_addr
+ 212 0106 00 00		ldr r0, [r0, #0]
+ 213 0108 0F B7		mov pc, lr
+ 214           	
+ 215           	ptc_init:
+ 216 010A 0E 24		push lr
+ 217 010C 00 24		push r0
+ 218 010E 0C 5C		bl ptc_stop
+ 219 0110 00 04		pop r0
+ 220 0112 81 67		mov r1, #PTC_ADDRESS & 0xFF
+ 221 0114 F1 7F	    movt r1, #(PTC_ADDRESS >> 8) & 0xFF
+ 222 0116 10 29	    strb r0, [r1, #PTC_TMR]
+ 223 0118 10 2B		strb r0, [r1, #PTC_TIR]
+ 224 011A 02 5C		bl ptc_start
+ 225 011C 0E 04		pop lr
+ 226 011E 0F B7	    mov pc, lr
+ 227           	
+ 228           	ptc_start:
+ 229 0120 A0 0C		ldr	r0, PTC_ADDR
+ 230 0122 01 60		mov	r1, #PTC_CMD_START
+ 231 0124 01 28		strb	r1, [r0, #PTC_TCR]
+ 232 0126 0F B7		mov	pc, lr
+ 233           	
+ 234           	ptc_stop:
+ 235 0128 60 0C		ldr	r0, PTC_ADDR
+ 236 012A 11 60		mov	r1, #PTC_CMD_STOP
+ 237 012C 01 28		strb	r1, [r0, #PTC_TCR]
+ 238 012E 0F B7		mov	pc, lr
+ 239           	
+ 240           	ptc_get_value:
+ 241 0130 21 0C		ldr	r1, PTC_ADDR
+ 242 0132 10 0A		ldrb	r0, [r1, #PTC_TC]
+ 243 0134 0F B7		mov	pc, lr
+ 244           	
+ 245           	PTC_ADDR:
+ 246 0136 78 FF		.word	PTC_ADDRESS
+ 247           	
+ 248           	stimulus_init_val:
+ 249 0138 01 00	    .word STIMULUS
+ 250           	
+ 251           	result_init_val:
+ 252 013A FE 00	    .word RESULT
+ 253           	
+ 254           	inport_read:
+ 255 013C 21 0C		ldr	r1, inport_addr
+ 256 013E 10 08		ldrb	r0, [r1, #0]
+ 257 0140 0F B7		mov	pc, lr
+ 258           	
+ 259           	inport_addr:
+ 260 0142 80 FF		.word	INPORT_ADDRESS
+ 261           	
+ 262           	outport_init:
+ 263 0144 0E 24	    push lr
+ 264 0146 F0 6F	    mov r0, #0xFF
+ 265 0148 01 5C	    bl outport_write
+ 266 014A 0F 04	    pop pc
+ 267           	
+ 268           	outport_write:
+ 269 014C 21 0C		ldr	r1, outport_addr
+ 270 014E 10 28		strb	r0, [r1, #0]
+ 271 0150 0F B7		mov	pc, lr
+ 272           	
+ 273           	outport_addr:
+ 274 0152 C0 FF		.word	OUTPORT_ADDRESS
+ 275           	
+ 276           	sysclk_addr:
+ 277 0154 58 01	    .word sysclk
+ 278           	
+ 279           	ptc_addr:
+ 280 0156 78 FF		.word PTC_ADDRESS
+ 281           	
+ 282           	.data
+ 283           	
+ 284           	.bss
+ 285           	
+ 286           	sysclk:
+ 287 0158 00   		.space	2
+ 287 0159 00
+ 288           	
+ 289           	    .stack
+ 290 015A 00   	    .space STACK_SIZE
+ 290 .... ..
+ 290 0199 00
+ 291           	tos:
