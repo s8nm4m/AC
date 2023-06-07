@@ -70,7 +70,7 @@ result_init_val2:
 
 user_mask:
     .word USER
-
+;tá mal help
 delay:
     push lr
 	and	r0, r0, r0
@@ -131,9 +131,7 @@ inport_addr2:
 
 test:
     bl test_1
-    ldr r0, outport_addr2
-    ldr r0, [r0]
-    sub r0, r0, #1
+    mov r0, #0
     bl outport_write
     bl test_2
     bl show_result
@@ -167,24 +165,24 @@ get_time:
 
 test_2:
     push lr 
+    push lr
     mrs r0, cpsr ; lê valor actual do cpsr
     mov r1, #0x10 ; mask do bit a activar IE
     orr r0, r0, r1 ; junta aos outros bits de estado
     msr cpsr, r0 ; carrega novo cpsr
+    mov r0, #2
     bl ptc_init
     bl wait_user
     pop pc
 
 wait_user:
-    push lr
     bl inport_read
     mov r1, #USER
     and r0, r0, r1
     mov r1, #0
     cmp r0, r1
-    beq show_result
-    b wait_user
-    pop pc
+    bne wait_user
+    pop pc 
 
 show_result:
     push lr
