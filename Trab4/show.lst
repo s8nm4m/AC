@@ -1,0 +1,75 @@
+P16 assembler v1.4.0 (Mar  6 2023)	d:\ISEL\2223\LEIC\s2\AC\Trab4\show.lst	Thu Jun 08 20:56:30 2023
+
+Sections
+Index   Name            Address   Size
+0       .text           0000      003C 60
+
+Symbols
+Name                    Type      Value       Section
+AVG_TIME                ABSOLUTE  00C8 200    .text
+higher_than_avg         LABEL     0024 36     .text
+line#14                 LABEL     0010 16     .text
+lower_than_avg          LABEL     002C 44     .text
+main                    LABEL     0000 0      .text
+outport_addr            LABEL     003A 58     .text
+OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .text
+outport_write           LABEL     0034 52     .text
+RESULT                  ABSOLUTE  00FE 254    .text
+show_result             LABEL     0012 18     .text
+
+Code listing
+   1          	.equ RESULT, 0xFE
+   2          	.equ AVG_TIME, 200
+   3          	.equ OUTPORT_ADDRESS, 0xFFC0
+   4           	
+   5           	main:
+   6 0000 E0 69	    mov r0, #158
+   7 0002 07 5C	    bl show_result
+   8 0004 40 66	    mov r0, #100
+   9 0006 05 5C	    bl show_result
+  10 0008 F0 6F	    mov r0, #0xFF
+  11 000A 03 5C	    bl show_result
+  12 000C 00 60	    mov r0, #0
+  13 000E 01 5C	    bl show_result
+  14 0010 FF 5B	    b .
+  15           	
+  16           	show_result:
+  17 0012 0E 24	    push lr
+  18           	    ;bl sysclk_get_ticks
+  19 0014 02 B0	    mov r2, r0
+  20           	    ;bl ptc_stop
+  21 0016 80 6C	    mov r0, #AVG_TIME
+  22 0018 00 B9	    cmp r0, r2
+  23 001A 04 54	    blt higher_than_avg
+  24 001C 07 5C	    bl lower_than_avg
+  25           	    ;sub r0, r2, r0
+  26           	    ;mvn r0, r0
+  27           	    ;add r0, r0, #1
+  28           	    ;lsl r0, r0, #1
+  29           	    ;mov r1, #RESULT
+  30           	    ;and r0, r0, r1
+  31 001E 80 E0	    lsl r0, r0, #1
+  32 0020 09 5C	    bl outport_write
+  33           	    ;mov r0, #5
+  34           	    ;bl delay
+  35 0022 0F 04	    pop pc
+  36           	
+  37           	higher_than_avg:
+  38 0024 20 88	    sub r0, r2, r0
+  39 0026 80 E0	    lsl r0, r0, #1
+  40 0028 05 5C	    bl outport_write
+  41 002A 0F 04	    pop pc
+  42           	    
+  43           	lower_than_avg:
+  44 002C 20 88	    sub r0, r2, r0
+  45 002E 10 B0	    mvn r0, r0
+  46 0030 80 A0	    add r0, r0, #1
+  47 0032 0F B7	    mov pc, lr
+  48           	    
+  49           	outport_write:
+  50 0034 21 0C		ldr	r1, outport_addr
+  51 0036 10 28		strb	r0, [r1, #0]
+  52 0038 0F B7		mov	pc, lr
+  53           	
+  54           	outport_addr:
+  55 003A C0 FF		.word	OUTPORT_ADDRESS
