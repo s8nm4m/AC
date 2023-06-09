@@ -60,12 +60,23 @@ wait0to1:
     bne wait0to1
     b setup_test
 
+delay_first:
+    push lr
+    lsl r1, r0, #2
+delay_first_loop:
+    bl check_user
+    bl sysclk_get_ticks
+    cmp r0, r1
+    bne delay_first_loop
+delay_first_end:
+	pop pc
+
 delay:
     push lr
     lsl r1, r0, #2
 delay_loop:
     bl sysclk_get_ticks
-    cmp r0, r2
+    cmp r0, r1
     bne delay_loop
 delay_end:
 	pop pc
@@ -85,10 +96,9 @@ check_user:
     pop pc
 
 setup_test:
-    mrs r0, cpsr ; lê valor actual do cpsr
-    mov r1, #0x10 ; mask do bit a activar IE
-    orr r0, r0, r1 ; junta aos outros bits de estado
-    msr cpsr, r0 ; carrega novo cpsr
+    bl reset_sysclk
+    bl get_time
+    mov r3, r0
     mov r0, #1
     bl outport_write
     b test
@@ -103,17 +113,16 @@ test:
 
 wait_time:
     push lr
-    bl get_time
-    and r0, r0, r0 
-    beq wait_time
-    mov r1, #10
-    cmp r1, r0
-    bge wait_time
-    pop r0
-    mov r0, #250
+    mov r0, #249
     bl ptc_init
-    push r0
-    bl delay
+    mrs r0, cpsr ; lê valor actual do cpsr
+    mov r1, #0x10 ; mask do bit a activar IE
+    orr r0, r0, r1 ; junta aos outros bits de estado
+    msr cpsr, r0 ; carrega novo cpsr
+    mov r0, r3
+    bl delay_first
+    bl ptc_stop
+    bl reset_sysclk
     pop pc 
 
 get_time:
@@ -122,25 +131,38 @@ get_time:
     mov r1, #TIME
     and r0, r0, r1
     lsr r0, r0, #4
+    and r0, r0, r0 
+    beq less_than_1
+    mov r1, #10
+    cmp r0, r1
+    bge over_10
+    pop pc 
+
+less_than_1:
+    mov r0, #1
+    pop pc
+
+over_10:
+    mov r0, #10
     pop pc
 
 measure_time:
-    push lr 
-    bl reset_sysclk
-    mov r0, #2
+    push lr
+    mov r0, #1
     bl ptc_init
     bl wait_user
     pop pc
 
 wait_user:
     push lr
+wait_loop:
     bl inport_read
     mov r1, #USER
     and r0, r0, r1
     mov r1, #0
     cmp r0, r1
-    bne wait_user
-    pop pc 
+    bne wait_loop
+    pop pc     
 
 get_result:
     push lr
@@ -154,24 +176,41 @@ get_result:
     pop pc
 
 higher_than_avg:
-    sub r0, r2, r0
+    sub r0, r0, r2
     bl show_result
     pop pc
 
 lower_than_avg:
-    sub r0, r2, r0
+    sub r0, r0, r2
     mvn r0, r0
     add r0, r0, #1
     mov pc, lr
     
 show_result:
     push lr
+    bl in_scale
     lsl r0, r0, #1
     bl outport_write
     bl reset_sysclk
+    mov r0, #249
+    bl ptc_init
     mov r0, #5
     bl delay
     pop pc
+
+in_scale:
+    mov r1, #63
+    cmp r0, r1
+    bge out_of_scale
+    mvn r1, r1
+    add r1, r1, #1
+    cmp r1, r0 
+    bge out_of_scale
+    mov pc, lr 
+
+out_of_scale:
+    mov r0, #-64
+    mov pc, lr
 
 reset_sysclk:
     ldr r0, sysclk_addr
@@ -207,8 +246,7 @@ ptc_init:
     strb r0, [r1, #PTC_TMR]
 	strb r0, [r1, #PTC_TIR]
 	bl ptc_start
-	pop lr
-    mov pc, lr
+	pop pc
 
 ptc_start:
 	ldr	r0, PTC_ADDR
@@ -256,11 +294,10 @@ sysclk_addr:
     .word sysclk
 
 .data
+sysclk:
+	.word 0
 
 .bss
-
-sysclk:
-	.space	2
 
     .stack
     .space STACK_SIZE
