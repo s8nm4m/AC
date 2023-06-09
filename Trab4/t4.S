@@ -13,11 +13,10 @@
 .equ STIMULUS, 0x01
 .equ TIME, 0xF0
 .equ RESULT, 0xFE
-
+; Definicao dos valores dos simbolos utilizados no programa
 .equ AVG_TIME, 200
 .equ PTC_CMD_START, 0             
 .equ PTC_CMD_STOP, 1
-
 .equ LIMIT, 63
 .equ OUT_OF_RANGE, -64
 .equ MIN_TIME, 1
@@ -25,13 +24,14 @@
 .equ MULT_BY_4, 2
 .equ ON, 1
 .equ OFF, 0
-.equ CHANGE_PART, 4; from high to low or frm low to high
+.equ CHANGE_PART, 4; de high para low ou de low para high
 .equ TO_RESULT, 1
-
 .equ SHOW_RES_TIME, 5
 .equ SYSCLK_FREQ, 249
 .equ REACT_TIME_FREQ, 1
 
+; Seccao:    startup
+; Descricao: Guarda o código de arranque do sistema
 .section .startup
     b _start
     ldr pc, isr_addr
@@ -49,6 +49,8 @@ main_addr:
 isr_addr:
     .word isr
 
+; Seccao:    text
+; Descricao: Guarda o código do programa
 .text
 
 main:
@@ -60,7 +62,7 @@ init:
     orr r0, r0, r1
     bl outport_write
     b wait_user_1to0
-;espera que o SW USER seja colocado a zero
+;espera que o SW USER seja colocado a 0
 wait_user_1to0:
     bl inport_read
     mov r1, #USER
@@ -68,7 +70,7 @@ wait_user_1to0:
     mov r1, #OFF
     cmp r0, r1
     bne wait_user_1to0
-;espera que o SW USER seja colocado a um
+;espera que o SW USER seja colocado a 1
 wait_user_0to1:
     bl inport_read
     mov r1, #USER
@@ -77,7 +79,8 @@ wait_user_0to1:
     cmp r0, r1
     bne wait_user_0to1
     b setup_test
-;espera do tempo colocado pelo utilizador
+;espera do tempo colocado pelo utilizador em segundos
+;Entradas: R0 - numero de segundos a esperar
 delay:
     push lr
     bl mult_by_4
@@ -88,9 +91,11 @@ delay_loop:
     bne delay_loop
 delay_end:
 	pop pc
-;espera durante 5 segundos a mostrar o resultado
+
+;espera durante 'SHOW_RES_TIME' segundos
 delay_result:
     push lr
+    mov r0, SHOW_RES_TIME
     bl mult_by_4
 delay_result_loop:
     bl sysclk_get_ticks
@@ -98,11 +103,11 @@ delay_result_loop:
     bne delay_result_loop
 delay_result_end:
 	pop pc
-;multiplica o valor recebido em r0 por 4 e devolve o resiltado em r1
+;multiplica o valor recebido em r0 por 4 e devolve o resultado em r1
 mult_by_4:
     lsl r1, r0, #MULT_BY_4
     mov pc, lr
-;verifica se o user foi colocado a zero e dá abort em caso positivo
+;verifica se o SW USER foi colocado a 0 e dá abort em caso positivo
 check_user:
     push lr
     push r0
@@ -132,8 +137,9 @@ test:
     bl measure_time
     bl get_result
     b init
-;dá enable das interrupções e chama a função 'delay' para esperar o tempo indicado 
-;parando depois o contador do ptc e dando reset ao sysclk para a proxima contagem
+;dá enable das interrupções e chama a função 'delay' para esperar o tempo 
+;indicado parando depois o contador do ptc e dando reset ao sysclk para 
+;preparar a proxima contagem
 wait_time:
     push lr
     mov r0, #SYSCLK_FREQ
@@ -147,7 +153,7 @@ wait_time:
     bl ptc_stop
     bl reset_sysclk
     pop pc 
-;lê o tempo do inport, dando-lhe shift para da parte alta para a parte baixa
+;lê o tempo do inport, dando-lhe shift da parte alta para a parte baixa
 ;colocando-o dentro do range no caso em que esteja fora deste
 get_time:
     push lr
@@ -169,7 +175,7 @@ less_than_1:
 over_10:
     mov r0, #MAX_TIME
     pop pc
-;reformata o ptc para medir em ml e depois chama a função 'wait_user'
+;reformata o ptc para medir em ms e depois chama a função 'wait_user'
 measure_time:
     push lr
     mov r0, #REACT_TIME_FREQ
@@ -188,6 +194,7 @@ wait_user_loop:
     bne wait_user_loop
     pop pc     
 ;verifica a diferença entre o valor medido e a média de 200 ms
+;devolvendo o resultado em r0
 get_result:
     push lr
     bl ptc_stop
@@ -196,7 +203,7 @@ get_result:
     sub r0, r0, r2
     bl show_result
     pop pc
-;demonstra o resultado e chama a função delay_result
+;demonstra o resultado recebido em r0 e chama a função 'delay_result'
 show_result:
     push lr
     bl in_scale
@@ -205,10 +212,9 @@ show_result:
     bl reset_sysclk
     mov r0, #SYSCLK_FREQ
     bl ptc_init
-    mov r0, #SHOW_RES_TIME
     bl delay_result
     pop pc
-;verifica se o resultado está dentro da escala
+;verifica se o resultado está dentro da escala -63 a 63
 in_scale:
     mov r1, #LIMIT
     cmp r0, r1
@@ -218,17 +224,17 @@ in_scale:
     cmp r1, r0 
     bge out_of_scale
     mov pc, lr 
-;caso não esteja na escala, devolve o valor de -64
+;caso não esteja na escala, devolve o valor de -64 em r0
 out_of_scale:
     mov r0, #OUT_OF_RANGE
     mov pc, lr
-;coloca o sysclk a zero
+;coloca o sysclk a 0
 reset_sysclk:
     ldr r0, sysclk_addr
     mov r1, #OFF
     str r1, [r0]
     mov pc, lr
-;dá load ao valor da variável sysclk e devolve-0
+;dá load ao valor da variável sysclk e devolve-0 em r0
 sysclk_get_ticks:
 	ldr r0 , sysclk_addr
 	ldr r0, [r0]
@@ -246,7 +252,7 @@ isr:
     pop r1
     pop r0
     movs pc, lr
-;inicia o ptc
+;inicia o ptc, colocando o valor recebido em r0 como TMR
 ptc_init:
 	push lr
 	push r0
@@ -278,7 +284,7 @@ ptc_get_value:
 
 PTC_ADDR:
 	.word PTC_ADDRESS
-;lê o valor do inport
+;lê o valor do inport, devolvendo-o em r0
 inport_read:
 	ldr	r1, inport_addr
 	ldrb r0, [r1]
