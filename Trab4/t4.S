@@ -95,7 +95,7 @@ delay_end:
 ;espera durante 'SHOW_RES_TIME' segundos
 delay_result:
     push lr
-    mov r0, SHOW_RES_TIME
+    mov r0, #SHOW_RES_TIME
     bl mult_by_4
 delay_result_loop:
     bl sysclk_get_ticks
@@ -121,7 +121,7 @@ check_user:
     pop r1
     pop r0
     pop pc
-;faz as preparações do teste , isto é, desliga todos os leds excepto o do STIMULUS
+;faz as preparações do teste, isto é, desliga todos os leds excepto o do STIMULUS
 setup_test:
     bl reset_sysclk
     bl get_time
@@ -137,7 +137,7 @@ test:
     bl measure_time
     bl get_result
     b init
-;dá enable das interrupções e chama a função 'delay' para esperar o tempo 
+;dá enable às interrupções e chama a função 'delay' para o tempo de espera
 ;indicado parando depois o contador do ptc e dando reset ao sysclk para 
 ;preparar a proxima contagem
 wait_time:
@@ -234,7 +234,7 @@ reset_sysclk:
     mov r1, #OFF
     str r1, [r0]
     mov pc, lr
-;dá load ao valor da variável sysclk e devolve-0 em r0
+;dá load ao valor da variável sysclk e devolve-o em r0
 sysclk_get_ticks:
 	ldr r0 , sysclk_addr
 	ldr r0, [r0]
@@ -312,4 +312,4 @@ sysclk:
 
     .stack
     .space STACK_SIZE
-tos:
+tos:  

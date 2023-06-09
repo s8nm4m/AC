@@ -1,4 +1,4 @@
-P16 assembler v1.4.0 (Mar  6 2023)	d:\ISEL\2223\LEIC\s2\AC\Trab4\t4.lst	Fri Jun 09 21:52:12 2023
+P16 assembler v1.4.0 (Mar  6 2023)	t4.lst	Fri Jun 09 22:30:33 2023
 
 Sections
 Index   Name            Address   Size
@@ -13,15 +13,15 @@ Name                    Type      Value       Section
 _start                  LABEL     0004 4      .startup
 AVG_TIME                ABSOLUTE  00C8 200    .startup
 CHANGE_PART             ABSOLUTE  0004 4      .startup
-check_user              LABEL     0052 82     .text
+check_user              LABEL     0054 84     .text
 delay                   LABEL     0034 52     .text
 delay_end               LABEL     0040 64     .text
 delay_loop              LABEL     0038 56     .text
 delay_result            LABEL     0042 66     .text
-delay_result_end        LABEL     004C 76     .text
-delay_result_loop       LABEL     0046 70     .text
-get_result              LABEL     00D2 210    .text
-get_time                LABEL     009A 154    .text
+delay_result_end        LABEL     004E 78     .text
+delay_result_loop       LABEL     0048 72     .text
+get_result              LABEL     00D4 212    .text
+get_time                LABEL     009C 156    .text
 in_scale                LABEL     00F4 244    .text
 init                    LABEL     0010 16     .text
 inport_addr             LABEL     015E 350    .text
@@ -29,14 +29,14 @@ INPORT_ADDRESS          ABSOLUTE  FF80 65408  .startup
 inport_read             LABEL     0158 344    .text
 isr                     LABEL     0116 278    .text
 isr_addr                LABEL     000C 12     .startup
-less_than_1             LABEL     00B0 176    .text
+less_than_1             LABEL     00B2 178    .text
 LIMIT                   ABSOLUTE  003F 63     .startup
 main                    LABEL     000E 14     .text
 main_addr               LABEL     000A 10     .startup
 MAX_TIME                ABSOLUTE  000A 10     .startup
-measure_time            LABEL     00B8 184    .text
+measure_time            LABEL     00BA 186    .text
 MIN_TIME                ABSOLUTE  0001 1      .startup
-mult_by_4               LABEL     004E 78     .text
+mult_by_4               LABEL     0050 80     .text
 MULT_BY_4               ABSOLUTE  0002 2      .startup
 OFF                     ABSOLUTE  0000 0      .startup
 ON                      ABSOLUTE  0001 1      .startup
@@ -45,7 +45,7 @@ out_of_scale            LABEL     0104 260    .text
 outport_addr            LABEL     0166 358    .text
 OUTPORT_ADDRESS         ABSOLUTE  FFC0 65472  .startup
 outport_write           LABEL     0160 352    .text
-over_10                 LABEL     00B4 180    .text
+over_10                 LABEL     00B6 182    .text
 PTC_ADDR                LABEL     0156 342    .text
 PTC_ADDRESS             ABSOLUTE  FF78 65400  .startup
 PTC_CMD_START           ABSOLUTE  0000 0      .startup
@@ -61,26 +61,26 @@ PTC_TMR                 ABSOLUTE  0002 2      .startup
 REACT_TIME_FREQ         ABSOLUTE  0001 1      .startup
 reset_sysclk            LABEL     0108 264    .text
 RESULT                  ABSOLUTE  00FE 254    .startup
-setup_test              LABEL     006A 106    .text
+setup_test              LABEL     006C 108    .text
 SHOW_RES_TIME           ABSOLUTE  0005 5      .startup
-show_result             LABEL     00E0 224    .text
+show_result             LABEL     00E2 226    .text
 STACK_SIZE              ABSOLUTE  0040 64     .startup
 STIMULUS                ABSOLUTE  0001 1      .startup
 sysclk                  LABEL     016A 362    .data
 sysclk_addr             LABEL     0168 360    .text
 SYSCLK_FREQ             ABSOLUTE  00F9 249    .startup
 sysclk_get_ticks        LABEL     0110 272    .text
-test                    LABEL     0076 118    .text
+test                    LABEL     0078 120    .text
 TIME                    ABSOLUTE  00F0 240    .startup
 TO_RESULT               ABSOLUTE  0001 1      .startup
 tos                     LABEL     01AC 428    .stack
 tos_addr                LABEL     0008 8      .startup
 USER                    ABSOLUTE  0001 1      .startup
-wait_time               LABEL     0082 130    .text
-wait_user               LABEL     00C2 194    .text
+wait_time               LABEL     0084 132    .text
+wait_user               LABEL     00C4 196    .text
 wait_user_0to1          LABEL     0026 38     .text
 wait_user_1to0          LABEL     001A 26     .text
-wait_user_loop          LABEL     00C4 196    .text
+wait_user_loop          LABEL     00C6 198    .text
 
 Code listing
    1          	.equ STACK_SIZE, 64
@@ -98,25 +98,25 @@ Code listing
   13          	.equ STIMULUS, 0x01
   14          	.equ TIME, 0xF0
   15          	.equ RESULT, 0xFE
-  16           	
+  16           	; Definicao dos valores dos simbolos utilizados no programa
   17          	.equ AVG_TIME, 200
   18          	.equ PTC_CMD_START, 0             
   19          	.equ PTC_CMD_STOP, 1
-  20           	
-  21          	.equ LIMIT, 63
-  22          	.equ OUT_OF_RANGE, -64
-  23          	.equ MIN_TIME, 1
-  24          	.equ MAX_TIME, 10
-  25          	.equ MULT_BY_4, 2
-  26          	.equ ON, 1
-  27          	.equ OFF, 0
-  28          	.equ CHANGE_PART, 4; from high to low or frm low to high
-  29          	.equ TO_RESULT, 1
-  30           	
-  31          	.equ SHOW_RES_TIME, 5
-  32          	.equ SYSCLK_FREQ, 249
-  33          	.equ REACT_TIME_FREQ, 1
-  34           	
+  20          	.equ LIMIT, 63
+  21          	.equ OUT_OF_RANGE, -64
+  22          	.equ MIN_TIME, 1
+  23          	.equ MAX_TIME, 10
+  24          	.equ MULT_BY_4, 2
+  25          	.equ ON, 1
+  26          	.equ OFF, 0
+  27          	.equ CHANGE_PART, 4; de high para low ou de low para high
+  28          	.equ TO_RESULT, 1
+  29          	.equ SHOW_RES_TIME, 5
+  30          	.equ SYSCLK_FREQ, 249
+  31          	.equ REACT_TIME_FREQ, 1
+  32           	
+  33           	; Seccao:    startup
+  34           	; Descricao: Guarda o código de arranque do sistema
   35           	.section .startup
   36 0000 01 58	    b _start
   37 0002 4F 0C	    ldr pc, isr_addr
@@ -134,263 +134,269 @@ Code listing
   49           	isr_addr:
   50 000C 16 01	    .word isr
   51           	
-  52           	.text
-  53           	
-  54           	main:
-  55 000E 00 58	    b init
-  56           	;estado inicial onde liga todos os leds 
-  57           	init: 
-  58 0010 10 60	    mov r0, #STIMULUS
-  59 0012 E1 6F	    mov r1, #RESULT
-  60 0014 80 C8	    orr r0, r0, r1
-  61 0016 A4 5C	    bl outport_write
-  62 0018 00 58	    b wait_user_1to0
-  63           	;espera que o SW USER seja colocado a zero
-  64           	wait_user_1to0:
-  65 001A 9E 5C	    bl inport_read
-  66 001C 11 60	    mov r1, #USER
-  67 001E 80 C0	    and r0, r0, r1
-  68 0020 01 60	    mov r1, #OFF
-  69 0022 80 B8	    cmp r0, r1
-  70 0024 FA 47	    bne wait_user_1to0
-  71           	;espera que o SW USER seja colocado a um
-  72           	wait_user_0to1:
-  73 0026 98 5C	    bl inport_read
-  74 0028 11 60	    mov r1, #USER
-  75 002A 80 C0	    and r0, r0, r1
-  76 002C 11 60	    mov r1, #ON
-  77 002E 80 B8	    cmp r0, r1
-  78 0030 FA 47	    bne wait_user_0to1
-  79 0032 1B 58	    b setup_test
-  80           	;espera do tempo colocado pelo utilizador
-  81           	delay:
-  82 0034 0E 24	    push lr
-  83 0036 0B 5C	    bl mult_by_4
-  84           	delay_loop:
-  85 0038 0C 5C	    bl check_user
-  86 003A 6A 5C	    bl sysclk_get_ticks
-  87 003C 80 B8	    cmp r0, r1
-  88 003E FC 47	    bne delay_loop
-  89           	delay_end:
-  90 0040 0F 04		pop pc
-  91           	;espera durante 5 segundos a mostrar o resultado
-  92           	delay_result:
-  93 0042 0E 24	    push lr
-  94 0044 04 5C	    bl mult_by_4
-  95           	delay_result_loop:
-  96 0046 64 5C	    bl sysclk_get_ticks
-  97 0048 80 B8	    cmp r0, r1
-  98 004A FD 47	    bne delay_result_loop
-  99           	delay_result_end:
- 100 004C 0F 04		pop pc
- 101           	;multiplica o valor recebido em r0 por 4 e devolve o resiltado em r1
- 102           	mult_by_4:
- 103 004E 01 E1	    lsl r1, r0, #MULT_BY_4
- 104 0050 0F B7	    mov pc, lr
- 105           	;verifica se o user foi colocado a zero e dá abort em caso positivo
- 106           	check_user:
- 107 0052 0E 24	    push lr
- 108 0054 00 24	    push r0
- 109 0056 01 24	    push r1
- 110 0058 7F 5C	    bl inport_read
- 111 005A 11 60	    mov r1, #USER
- 112 005C 80 C0	    and r0, r0, r1
- 113 005E 01 60	    mov r1, #OFF
- 114 0060 80 B8	    cmp r0, r1
- 115 0062 D6 43	    beq init
- 116 0064 01 04	    pop r1
- 117 0066 00 04	    pop r0
- 118 0068 0F 04	    pop pc
- 119           	;faz as preparações do teste , isto é, desliga todos os leds excepto o do STIMULUS
- 120           	setup_test:
- 121 006A 4E 5C	    bl reset_sysclk
- 122 006C 16 5C	    bl get_time
- 123 006E 03 B0	    mov r3, r0
- 124 0070 10 60	    mov r0, #STIMULUS
- 125 0072 76 5C	    bl outport_write
- 126 0074 00 58	    b test
- 127           	;estado de controlo do teste
- 128           	test:
- 129 0076 05 5C	    bl wait_time
- 130 0078 00 60	    mov r0, #OFF
- 131 007A 72 5C	    bl outport_write
- 132 007C 1D 5C	    bl measure_time
- 133 007E 29 5C	    bl get_result
- 134 0080 C7 5B	    b init
- 135           	;dá enable das interrupções e chama a função 'delay' para esperar o tempo indicado 
- 136           	;parando depois o contador do ptc e dando reset ao sysclk para a proxima contagem
- 137           	wait_time:
- 138 0082 0E 24	    push lr
- 139 0084 90 6F	    mov r0, #SYSCLK_FREQ
- 140 0086 52 5C	    bl ptc_init
- 141 0088 60 B0	    mrs r0, cpsr ; lê valor actual do cpsr
- 142 008A 01 61	    mov r1, #0x10 ; mask do bit a activar IE
- 143 008C 80 C8	    orr r0, r0, r1 ; junta aos outros bits de estado
- 144 008E 40 B0	    msr cpsr, r0 ; carrega novo cpsr
- 145 0090 80 B1	    mov r0, r3
- 146 0092 D0 5F	    bl delay
- 147 0094 59 5C	    bl ptc_stop
- 148 0096 38 5C	    bl reset_sysclk
- 149 0098 0F 04	    pop pc 
- 150           	;lê o tempo do inport, dando-lhe shift para da parte alta para a parte baixa
- 151           	;colocando-o dentro do range no caso em que esteja fora deste
- 152           	get_time:
- 153 009A 0E 24	    push lr
- 154 009C 5D 5C	    bl inport_read
- 155 009E 01 6F	    mov r1, #TIME
- 156 00A0 80 C0	    and r0, r0, r1
- 157 00A2 00 EA	    lsr r0, r0, #CHANGE_PART
- 158 00A4 00 C0	    and r0, r0, r0 
- 159 00A6 04 40	    beq less_than_1
- 160 00A8 A1 60	    mov r1, #MAX_TIME
- 161 00AA 80 B8	    cmp r0, r1
- 162 00AC 03 50	    bge over_10
- 163 00AE 0F 04	    pop pc 
- 164           	;caso seja menor coloca o valor a 1
- 165           	less_than_1:
- 166 00B0 10 60	    mov r0, #MIN_TIME
- 167 00B2 0F 04	    pop pc
- 168           	;caso seja maior coloca o valor a 10
- 169           	over_10:
- 170 00B4 A0 60	    mov r0, #MAX_TIME
- 171 00B6 0F 04	    pop pc
- 172           	;reformata o ptc para medir em ml e depois chama a função 'wait_user'
- 173           	measure_time:
- 174 00B8 0E 24	    push lr
- 175 00BA 10 60	    mov r0, #REACT_TIME_FREQ
- 176 00BC 37 5C	    bl ptc_init
- 177 00BE 01 5C	    bl wait_user
- 178 00C0 0F 04	    pop pc
- 179           	;espera que o utilizador coloque o SW de USER a 0
- 180           	wait_user:
- 181 00C2 0E 24	    push lr
- 182           	wait_user_loop:
- 183 00C4 49 5C	    bl inport_read
- 184 00C6 11 60	    mov r1, #USER
- 185 00C8 80 C0	    and r0, r0, r1
- 186 00CA 01 60	    mov r1, #OFF
- 187 00CC 80 B8	    cmp r0, r1
- 188 00CE FA 47	    bne wait_user_loop
- 189 00D0 0F 04	    pop pc     
- 190           	;verifica a diferença entre o valor medido e a média de 200 ms
- 191           	get_result:
- 192 00D2 0E 24	    push lr
- 193 00D4 39 5C	    bl ptc_stop
- 194 00D6 1C 5C	    bl sysclk_get_ticks
- 195 00D8 82 6C	    mov r2, #AVG_TIME
- 196 00DA 00 89	    sub r0, r0, r2
- 197 00DC 01 5C	    bl show_result
- 198 00DE 0F 04	    pop pc
- 199           	;demonstra o resultado e chama a função delay_result
- 200           	show_result:
- 201 00E0 0E 24	    push lr
- 202 00E2 08 5C	    bl in_scale
- 203 00E4 80 E0	    lsl r0, r0, #TO_RESULT
- 204 00E6 3C 5C	    bl outport_write
- 205 00E8 0F 5C	    bl reset_sysclk
- 206 00EA 90 6F	    mov r0, #SYSCLK_FREQ
- 207 00EC 1F 5C	    bl ptc_init
- 208 00EE 50 60	    mov r0, #SHOW_RES_TIME
- 209 00F0 A8 5F	    bl delay_result
- 210 00F2 0F 04	    pop pc
- 211           	;verifica se o resultado está dentro da escala
- 212           	in_scale:
- 213 00F4 F1 63	    mov r1, #LIMIT
- 214 00F6 80 B8	    cmp r0, r1
- 215 00F8 05 50	    bge out_of_scale
- 216 00FA 91 B0	    mvn r1, r1
- 217 00FC 91 A0	    add r1, r1, #1
- 218 00FE 10 B8	    cmp r1, r0 
- 219 0100 01 50	    bge out_of_scale
- 220 0102 0F B7	    mov pc, lr 
- 221           	;caso não esteja na escala, devolve o valor de -64
- 222           	out_of_scale:
- 223 0104 00 6C	    mov r0, #OUT_OF_RANGE
- 224 0106 0F B7	    mov pc, lr
- 225           	;coloca o sysclk a zero
- 226           	reset_sysclk:
- 227 0108 F0 0E	    ldr r0, sysclk_addr
- 228 010A 01 60	    mov r1, #OFF
- 229 010C 01 20	    str r1, [r0]
- 230 010E 0F B7	    mov pc, lr
- 231           	;dá load ao valor da variável sysclk e devolve-0
- 232           	sysclk_get_ticks:
- 233 0110 B0 0E		ldr r0 , sysclk_addr
- 234 0112 00 00		ldr r0, [r0]
- 235 0114 0F B7		mov pc, lr
- 236           	;função de interrupção que incrementa o valor da variável 'sysclk'
- 237           	isr:
- 238 0116 00 24	    push r0
- 239 0118 01 24	    push r1
- 240 011A D0 0D	    ldr r0, PTC_ADDR
- 241 011C 00 2B		strb r0, [r0, #PTC_TIR]
- 242 011E 40 0E		ldr r0, sysclk_addr
- 243 0120 01 00		ldr r1, [r0]
- 244 0122 91 A0		add r1, r1, #1
- 245 0124 01 20		str r1, [r0]
- 246 0126 01 04	    pop r1
- 247 0128 00 04	    pop r0
- 248 012A 20 B0	    movs pc, lr
- 249           	;inicia o ptc
- 250           	ptc_init:
- 251 012C 0E 24		push lr
- 252 012E 00 24		push r0
- 253 0130 0B 5C		bl ptc_stop
- 254 0132 00 04		pop r0
- 255 0134 81 67		mov r1, #PTC_ADDRESS & 0xFF
- 256 0136 F1 7F	    movt r1, #(PTC_ADDRESS >> 8) & 0xFF
- 257 0138 10 29	    strb r0, [r1, #PTC_TMR]
- 258 013A 10 2B		strb r0, [r1, #PTC_TIR]
- 259 013C 01 5C		bl ptc_start
- 260 013E 0F 04		pop pc
- 261           	;começa a contagem do ptc
- 262           	ptc_start:
- 263 0140 A0 0C		ldr	r0, PTC_ADDR
- 264 0142 01 60		mov	r1, #PTC_CMD_START
- 265 0144 01 28		strb r1, [r0, #PTC_TCR]
- 266 0146 0F B7		mov	pc, lr
- 267           	;para a contagem do ptc
- 268           	ptc_stop:
- 269 0148 60 0C		ldr	r0, PTC_ADDR
- 270 014A 11 60		mov	r1, #PTC_CMD_STOP
- 271 014C 01 28		strb r1, [r0, #PTC_TCR]
- 272 014E 0F B7		mov	pc, lr
- 273           	;vai ler o valor de contagem do ptc e devolve-o em r0
- 274           	ptc_get_value:
- 275 0150 21 0C		ldr	r1, PTC_ADDR
- 276 0152 10 0A		ldrb r0, [r1, #PTC_TC]
- 277 0154 0F B7		mov	pc, lr
- 278           	
- 279           	PTC_ADDR:
- 280 0156 78 FF		.word PTC_ADDRESS
- 281           	;lê o valor do inport
- 282           	inport_read:
- 283 0158 21 0C		ldr	r1, inport_addr
- 284 015A 10 08		ldrb r0, [r1]
- 285 015C 0F B7		mov	pc, lr
- 286           	
- 287           	inport_addr:
- 288 015E 80 FF		.word INPORT_ADDRESS
- 289           	;escreve o valor de r0 no outport
- 290           	outport_write:
- 291 0160 21 0C		ldr	r1, outport_addr
- 292 0162 10 28		strb r0, [r1]
- 293 0164 0F B7		mov	pc, lr
- 294           	
- 295           	outport_addr:
- 296 0166 C0 FF		.word OUTPORT_ADDRESS
- 297           	
- 298           	sysclk_addr:
- 299 0168 6A 01	    .word sysclk
+  52           	; Seccao:    text
+  53           	; Descricao: Guarda o código do programa
+  54           	.text
+  55           	
+  56           	main:
+  57 000E 00 58	    b init
+  58           	;estado inicial onde liga todos os leds 
+  59           	init: 
+  60 0010 10 60	    mov r0, #STIMULUS
+  61 0012 E1 6F	    mov r1, #RESULT
+  62 0014 80 C8	    orr r0, r0, r1
+  63 0016 A4 5C	    bl outport_write
+  64 0018 00 58	    b wait_user_1to0
+  65           	;espera que o SW USER seja colocado a 0
+  66           	wait_user_1to0:
+  67 001A 9E 5C	    bl inport_read
+  68 001C 11 60	    mov r1, #USER
+  69 001E 80 C0	    and r0, r0, r1
+  70 0020 01 60	    mov r1, #OFF
+  71 0022 80 B8	    cmp r0, r1
+  72 0024 FA 47	    bne wait_user_1to0
+  73           	;espera que o SW USER seja colocado a 1
+  74           	wait_user_0to1:
+  75 0026 98 5C	    bl inport_read
+  76 0028 11 60	    mov r1, #USER
+  77 002A 80 C0	    and r0, r0, r1
+  78 002C 11 60	    mov r1, #ON
+  79 002E 80 B8	    cmp r0, r1
+  80 0030 FA 47	    bne wait_user_0to1
+  81 0032 1C 58	    b setup_test
+  82           	;espera do tempo colocado pelo utilizador em segundos
+  83           	;Entradas: R0 - numero de segundos a esperar
+  84           	delay:
+  85 0034 0E 24	    push lr
+  86 0036 0C 5C	    bl mult_by_4
+  87           	delay_loop:
+  88 0038 0D 5C	    bl check_user
+  89 003A 6A 5C	    bl sysclk_get_ticks
+  90 003C 80 B8	    cmp r0, r1
+  91 003E FC 47	    bne delay_loop
+  92           	delay_end:
+  93 0040 0F 04		pop pc
+  94           	
+  95           	;espera durante 'SHOW_RES_TIME' segundos
+  96           	delay_result:
+  97 0042 0E 24	    push lr
+  98 0044 50 60	    mov r0, #SHOW_RES_TIME
+  99 0046 04 5C	    bl mult_by_4
+ 100           	delay_result_loop:
+ 101 0048 63 5C	    bl sysclk_get_ticks
+ 102 004A 80 B8	    cmp r0, r1
+ 103 004C FD 47	    bne delay_result_loop
+ 104           	delay_result_end:
+ 105 004E 0F 04		pop pc
+ 106           	;multiplica o valor recebido em r0 por 4 e devolve o resultado em r1
+ 107           	mult_by_4:
+ 108 0050 01 E1	    lsl r1, r0, #MULT_BY_4
+ 109 0052 0F B7	    mov pc, lr
+ 110           	;verifica se o SW USER foi colocado a 0 e dá abort em caso positivo
+ 111           	check_user:
+ 112 0054 0E 24	    push lr
+ 113 0056 00 24	    push r0
+ 114 0058 01 24	    push r1
+ 115 005A 7E 5C	    bl inport_read
+ 116 005C 11 60	    mov r1, #USER
+ 117 005E 80 C0	    and r0, r0, r1
+ 118 0060 01 60	    mov r1, #OFF
+ 119 0062 80 B8	    cmp r0, r1
+ 120 0064 D5 43	    beq init
+ 121 0066 01 04	    pop r1
+ 122 0068 00 04	    pop r0
+ 123 006A 0F 04	    pop pc
+ 124           	;faz as preparações do teste, isto é, desliga todos os leds excepto o do STIMULUS
+ 125           	setup_test:
+ 126 006C 4D 5C	    bl reset_sysclk
+ 127 006E 16 5C	    bl get_time
+ 128 0070 03 B0	    mov r3, r0
+ 129 0072 10 60	    mov r0, #STIMULUS
+ 130 0074 75 5C	    bl outport_write
+ 131 0076 00 58	    b test
+ 132           	;estado de controlo do teste
+ 133           	test:
+ 134 0078 05 5C	    bl wait_time
+ 135 007A 00 60	    mov r0, #OFF
+ 136 007C 71 5C	    bl outport_write
+ 137 007E 1D 5C	    bl measure_time
+ 138 0080 29 5C	    bl get_result
+ 139 0082 C6 5B	    b init
+ 140           	;dá enable às interrupções e chama a função 'delay' para o tempo de espera
+ 141           	;indicado parando depois o contador do ptc e dando reset ao sysclk para 
+ 142           	;preparar a proxima contagem
+ 143           	wait_time:
+ 144 0084 0E 24	    push lr
+ 145 0086 90 6F	    mov r0, #SYSCLK_FREQ
+ 146 0088 51 5C	    bl ptc_init
+ 147 008A 60 B0	    mrs r0, cpsr ; lê valor actual do cpsr
+ 148 008C 01 61	    mov r1, #0x10 ; mask do bit a activar IE
+ 149 008E 80 C8	    orr r0, r0, r1 ; junta aos outros bits de estado
+ 150 0090 40 B0	    msr cpsr, r0 ; carrega novo cpsr
+ 151 0092 80 B1	    mov r0, r3
+ 152 0094 CF 5F	    bl delay
+ 153 0096 58 5C	    bl ptc_stop
+ 154 0098 37 5C	    bl reset_sysclk
+ 155 009A 0F 04	    pop pc 
+ 156           	;lê o tempo do inport, dando-lhe shift da parte alta para a parte baixa
+ 157           	;colocando-o dentro do range no caso em que esteja fora deste
+ 158           	get_time:
+ 159 009C 0E 24	    push lr
+ 160 009E 5C 5C	    bl inport_read
+ 161 00A0 01 6F	    mov r1, #TIME
+ 162 00A2 80 C0	    and r0, r0, r1
+ 163 00A4 00 EA	    lsr r0, r0, #CHANGE_PART
+ 164 00A6 00 C0	    and r0, r0, r0 
+ 165 00A8 04 40	    beq less_than_1
+ 166 00AA A1 60	    mov r1, #MAX_TIME
+ 167 00AC 80 B8	    cmp r0, r1
+ 168 00AE 03 50	    bge over_10
+ 169 00B0 0F 04	    pop pc 
+ 170           	;caso seja menor coloca o valor a 1
+ 171           	less_than_1:
+ 172 00B2 10 60	    mov r0, #MIN_TIME
+ 173 00B4 0F 04	    pop pc
+ 174           	;caso seja maior coloca o valor a 10
+ 175           	over_10:
+ 176 00B6 A0 60	    mov r0, #MAX_TIME
+ 177 00B8 0F 04	    pop pc
+ 178           	;reformata o ptc para medir em ms e depois chama a função 'wait_user'
+ 179           	measure_time:
+ 180 00BA 0E 24	    push lr
+ 181 00BC 10 60	    mov r0, #REACT_TIME_FREQ
+ 182 00BE 36 5C	    bl ptc_init
+ 183 00C0 01 5C	    bl wait_user
+ 184 00C2 0F 04	    pop pc
+ 185           	;espera que o utilizador coloque o SW de USER a 0
+ 186           	wait_user:
+ 187 00C4 0E 24	    push lr
+ 188           	wait_user_loop:
+ 189 00C6 48 5C	    bl inport_read
+ 190 00C8 11 60	    mov r1, #USER
+ 191 00CA 80 C0	    and r0, r0, r1
+ 192 00CC 01 60	    mov r1, #OFF
+ 193 00CE 80 B8	    cmp r0, r1
+ 194 00D0 FA 47	    bne wait_user_loop
+ 195 00D2 0F 04	    pop pc     
+ 196           	;verifica a diferença entre o valor medido e a média de 200 ms
+ 197           	;devolvendo o resultado em r0
+ 198           	get_result:
+ 199 00D4 0E 24	    push lr
+ 200 00D6 38 5C	    bl ptc_stop
+ 201 00D8 1B 5C	    bl sysclk_get_ticks
+ 202 00DA 82 6C	    mov r2, #AVG_TIME
+ 203 00DC 00 89	    sub r0, r0, r2
+ 204 00DE 01 5C	    bl show_result
+ 205 00E0 0F 04	    pop pc
+ 206           	;demonstra o resultado recebido em r0 e chama a função 'delay_result'
+ 207           	show_result:
+ 208 00E2 0E 24	    push lr
+ 209 00E4 07 5C	    bl in_scale
+ 210 00E6 80 E0	    lsl r0, r0, #TO_RESULT
+ 211 00E8 3B 5C	    bl outport_write
+ 212 00EA 0E 5C	    bl reset_sysclk
+ 213 00EC 90 6F	    mov r0, #SYSCLK_FREQ
+ 214 00EE 1E 5C	    bl ptc_init
+ 215 00F0 A8 5F	    bl delay_result
+ 216 00F2 0F 04	    pop pc
+ 217           	;verifica se o resultado está dentro da escala -63 a 63
+ 218           	in_scale:
+ 219 00F4 F1 63	    mov r1, #LIMIT
+ 220 00F6 80 B8	    cmp r0, r1
+ 221 00F8 05 50	    bge out_of_scale
+ 222 00FA 91 B0	    mvn r1, r1
+ 223 00FC 91 A0	    add r1, r1, #1
+ 224 00FE 10 B8	    cmp r1, r0 
+ 225 0100 01 50	    bge out_of_scale
+ 226 0102 0F B7	    mov pc, lr 
+ 227           	;caso não esteja na escala, devolve o valor de -64 em r0
+ 228           	out_of_scale:
+ 229 0104 00 6C	    mov r0, #OUT_OF_RANGE
+ 230 0106 0F B7	    mov pc, lr
+ 231           	;coloca o sysclk a 0
+ 232           	reset_sysclk:
+ 233 0108 F0 0E	    ldr r0, sysclk_addr
+ 234 010A 01 60	    mov r1, #OFF
+ 235 010C 01 20	    str r1, [r0]
+ 236 010E 0F B7	    mov pc, lr
+ 237           	;dá load ao valor da variável sysclk e devolve-o em r0
+ 238           	sysclk_get_ticks:
+ 239 0110 B0 0E		ldr r0 , sysclk_addr
+ 240 0112 00 00		ldr r0, [r0]
+ 241 0114 0F B7		mov pc, lr
+ 242           	;função de interrupção que incrementa o valor da variável 'sysclk'
+ 243           	isr:
+ 244 0116 00 24	    push r0
+ 245 0118 01 24	    push r1
+ 246 011A D0 0D	    ldr r0, PTC_ADDR
+ 247 011C 00 2B		strb r0, [r0, #PTC_TIR]
+ 248 011E 40 0E		ldr r0, sysclk_addr
+ 249 0120 01 00		ldr r1, [r0]
+ 250 0122 91 A0		add r1, r1, #1
+ 251 0124 01 20		str r1, [r0]
+ 252 0126 01 04	    pop r1
+ 253 0128 00 04	    pop r0
+ 254 012A 20 B0	    movs pc, lr
+ 255           	;inicia o ptc, colocando o valor recebido em r0 como TMR
+ 256           	ptc_init:
+ 257 012C 0E 24		push lr
+ 258 012E 00 24		push r0
+ 259 0130 0B 5C		bl ptc_stop
+ 260 0132 00 04		pop r0
+ 261 0134 81 67		mov r1, #PTC_ADDRESS & 0xFF
+ 262 0136 F1 7F	    movt r1, #(PTC_ADDRESS >> 8) & 0xFF
+ 263 0138 10 29	    strb r0, [r1, #PTC_TMR]
+ 264 013A 10 2B		strb r0, [r1, #PTC_TIR]
+ 265 013C 01 5C		bl ptc_start
+ 266 013E 0F 04		pop pc
+ 267           	;começa a contagem do ptc
+ 268           	ptc_start:
+ 269 0140 A0 0C		ldr	r0, PTC_ADDR
+ 270 0142 01 60		mov	r1, #PTC_CMD_START
+ 271 0144 01 28		strb r1, [r0, #PTC_TCR]
+ 272 0146 0F B7		mov	pc, lr
+ 273           	;para a contagem do ptc
+ 274           	ptc_stop:
+ 275 0148 60 0C		ldr	r0, PTC_ADDR
+ 276 014A 11 60		mov	r1, #PTC_CMD_STOP
+ 277 014C 01 28		strb r1, [r0, #PTC_TCR]
+ 278 014E 0F B7		mov	pc, lr
+ 279           	;vai ler o valor de contagem do ptc e devolve-o em r0
+ 280           	ptc_get_value:
+ 281 0150 21 0C		ldr	r1, PTC_ADDR
+ 282 0152 10 0A		ldrb r0, [r1, #PTC_TC]
+ 283 0154 0F B7		mov	pc, lr
+ 284           	
+ 285           	PTC_ADDR:
+ 286 0156 78 FF		.word PTC_ADDRESS
+ 287           	;lê o valor do inport, devolvendo-o em r0
+ 288           	inport_read:
+ 289 0158 21 0C		ldr	r1, inport_addr
+ 290 015A 10 08		ldrb r0, [r1]
+ 291 015C 0F B7		mov	pc, lr
+ 292           	
+ 293           	inport_addr:
+ 294 015E 80 FF		.word INPORT_ADDRESS
+ 295           	;escreve o valor de r0 no outport
+ 296           	outport_write:
+ 297 0160 21 0C		ldr	r1, outport_addr
+ 298 0162 10 28		strb r0, [r1]
+ 299 0164 0F B7		mov	pc, lr
  300           	
- 301           	.data
- 302           	sysclk:
- 303 016A 00 00		.word 0
- 304           	
- 305           	.bss
+ 301           	outport_addr:
+ 302 0166 C0 FF		.word OUTPORT_ADDRESS
+ 303           	
+ 304           	sysclk_addr:
+ 305 0168 6A 01	    .word sysclk
  306           	
- 307           	    .stack
- 308 016C 00   	    .space STACK_SIZE
- 308 .... ..
- 308 01AB 00
- 309           	tos:
+ 307           	.data
+ 308           	sysclk:
+ 309 016A 00 00		.word 0
+ 310           	
+ 311           	.bss
+ 312           	
+ 313           	    .stack
+ 314 016C 00   	    .space STACK_SIZE
+ 314 .... ..
+ 314 01AB 00
+ 315           	tos:  
