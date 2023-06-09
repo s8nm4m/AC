@@ -1,18 +1,36 @@
 .equ STACK_SIZE, 64
+;endereços dos port em uso
 .equ INPORT_ADDRESS, 0xFF80
 .equ OUTPORT_ADDRESS, 0xFFC0
 .equ PTC_ADDRESS, 0xFF78
+;offsets dos registos do ptc
 .equ PTC_TCR, 0
 .equ PTC_TMR, 2
 .equ PTC_TC, 4
 .equ PTC_TIR, 6 
+;mascaras
 .equ USER, 0x01
 .equ STIMULUS, 0x01
 .equ TIME, 0xF0
 .equ RESULT, 0xFE
+
 .equ AVG_TIME, 200
 .equ PTC_CMD_START, 0             
 .equ PTC_CMD_STOP, 1
+
+.equ LIMIT, 63
+.equ OUT_OF_RANGE, -64
+.equ MIN_TIME, 1
+.equ MAX_TIME, 10
+.equ MULT_BY_4, 2
+.equ ON, 1
+.equ OFF, 0
+.equ CHANGE_PART, 4; from high to low or frm low to high
+.equ TO_RESULT, 1
+
+.equ SHOW_RES_TIME, 5
+.equ SYSCLK_FREQ, 249
+.equ REACT_TIME_FREQ, 1
 
 .section .startup
     b _start
@@ -35,52 +53,56 @@ isr_addr:
 
 main:
     b init
-
-init:
+;estado inicial onde liga todos os leds 
+init: 
     mov r0, #STIMULUS
     mov r1, #RESULT
     orr r0, r0, r1
     bl outport_write
-    b wait1to0
-
-wait1to0:
+    b wait_user_1to0
+;espera que o SW USER seja colocado a zero
+wait_user_1to0:
     bl inport_read
     mov r1, #USER
     and r0, r0, r1
-    mov r1, #0
+    mov r1, #OFF
     cmp r0, r1
-    bne wait1to0
-
-wait0to1:
+    bne wait_user_1to0
+;espera que o SW USER seja colocado a um
+wait_user_0to1:
     bl inport_read
     mov r1, #USER
     and r0, r0, r1
-    mov r1, #1
+    mov r1, #ON
     cmp r0, r1
-    bne wait0to1
+    bne wait_user_0to1
     b setup_test
-
-delay_first:
-    push lr
-    lsl r1, r0, #2
-delay_first_loop:
-    bl check_user
-    bl sysclk_get_ticks
-    cmp r0, r1
-    bne delay_first_loop
-delay_first_end:
-	pop pc
-
+;espera do tempo colocado pelo utilizador
 delay:
     push lr
-    lsl r1, r0, #2
+    bl mult_by_4
 delay_loop:
+    bl check_user
     bl sysclk_get_ticks
     cmp r0, r1
     bne delay_loop
 delay_end:
 	pop pc
-
+;espera durante 5 segundos a mostrar o resultado
+delay_result:
+    push lr
+    bl mult_by_4
+delay_result_loop:
+    bl sysclk_get_ticks
+    cmp r0, r1
+    bne delay_result_loop
+delay_result_end:
+	pop pc
+;multiplica o valor recebido em r0 por 4 e devolve o resiltado em r1
+mult_by_4:
+    lsl r1, r0, #MULT_BY_4
+    mov pc, lr
+;verifica se o user foi colocado a zero e dá abort em caso positivo
 check_user:
     push lr
     push r0
@@ -88,118 +110,107 @@ check_user:
     bl inport_read
     mov r1, #USER
     and r0, r0, r1
-    mov r1, #0
+    mov r1, #OFF
     cmp r0, r1
     beq init
     pop r1
     pop r0
     pop pc
-
+;faz as preparações do teste , isto é, desliga todos os leds excepto o do STIMULUS
 setup_test:
     bl reset_sysclk
     bl get_time
     mov r3, r0
-    mov r0, #1
+    mov r0, #STIMULUS
     bl outport_write
     b test
-
+;estado de controlo do teste
 test:
     bl wait_time
-    mov r0, #0
+    mov r0, #OFF
     bl outport_write
     bl measure_time
     bl get_result
     b init
-
+;dá enable das interrupções e chama a função 'delay' para esperar o tempo indicado 
+;parando depois o contador do ptc e dando reset ao sysclk para a proxima contagem
 wait_time:
     push lr
-    mov r0, #249
+    mov r0, #SYSCLK_FREQ
     bl ptc_init
     mrs r0, cpsr ; lê valor actual do cpsr
     mov r1, #0x10 ; mask do bit a activar IE
     orr r0, r0, r1 ; junta aos outros bits de estado
     msr cpsr, r0 ; carrega novo cpsr
     mov r0, r3
-    bl delay_first
+    bl delay
     bl ptc_stop
     bl reset_sysclk
     pop pc 
-
+;lê o tempo do inport, dando-lhe shift para da parte alta para a parte baixa
+;colocando-o dentro do range no caso em que esteja fora deste
 get_time:
     push lr
     bl inport_read
     mov r1, #TIME
     and r0, r0, r1
-    lsr r0, r0, #4
+    lsr r0, r0, #CHANGE_PART
     and r0, r0, r0 
     beq less_than_1
-    mov r1, #10
+    mov r1, #MAX_TIME
     cmp r0, r1
     bge over_10
     pop pc 
-
+;caso seja menor coloca o valor a 1
 less_than_1:
-    mov r0, #1
+    mov r0, #MIN_TIME
     pop pc
-
+;caso seja maior coloca o valor a 10
 over_10:
-    mov r0, #10
+    mov r0, #MAX_TIME
     pop pc
-
+;reformata o ptc para medir em ml e depois chama a função 'wait_user'
 measure_time:
     push lr
-    mov r0, #1
+    mov r0, #REACT_TIME_FREQ
     bl ptc_init
     bl wait_user
     pop pc
-
+;espera que o utilizador coloque o SW de USER a 0
 wait_user:
     push lr
-wait_loop:
+wait_user_loop:
     bl inport_read
     mov r1, #USER
     and r0, r0, r1
-    mov r1, #0
+    mov r1, #OFF
     cmp r0, r1
-    bne wait_loop
+    bne wait_user_loop
     pop pc     
-
+;verifica a diferença entre o valor medido e a média de 200 ms
 get_result:
     push lr
     bl ptc_stop
     bl sysclk_get_ticks
     mov r2, #AVG_TIME
-    cmp r2, r0
-    blt higher_than_avg
-    bl lower_than_avg
-    bl show_result
-    pop pc
-
-higher_than_avg:
     sub r0, r0, r2
     bl show_result
     pop pc
-
-lower_than_avg:
-    sub r0, r0, r2
-    mvn r0, r0
-    add r0, r0, #1
-    mov pc, lr
-    
+;demonstra o resultado e chama a função delay_result
 show_result:
     push lr
     bl in_scale
-    lsl r0, r0, #1
+    lsl r0, r0, #TO_RESULT
     bl outport_write
     bl reset_sysclk
-    mov r0, #249
+    mov r0, #SYSCLK_FREQ
     bl ptc_init
-    mov r0, #5
-    bl delay
+    mov r0, #SHOW_RES_TIME
+    bl delay_result
     pop pc
-
+;verifica se o resultado está dentro da escala
 in_scale:
-    mov r1, #63
+    mov r1, #LIMIT
     cmp r0, r1
     bge out_of_scale
     mvn r1, r1
@@ -207,35 +218,35 @@ in_scale:
     cmp r1, r0 
     bge out_of_scale
     mov pc, lr 
-
+;caso não esteja na escala, devolve o valor de -64
 out_of_scale:
-    mov r0, #-64
+    mov r0, #OUT_OF_RANGE
     mov pc, lr
-
+;coloca o sysclk a zero
 reset_sysclk:
     ldr r0, sysclk_addr
-    mov r1, #0
+    mov r1, #OFF
     str r1, [r0]
     mov pc, lr
-
+;dá load ao valor da variável sysclk e devolve-0
 sysclk_get_ticks:
 	ldr r0 , sysclk_addr
-	ldr r0, [r0, #0]
+	ldr r0, [r0]
 	mov pc, lr
-
+;função de interrupção que incrementa o valor da variável 'sysclk'
 isr:
     push r0
     push r1
     ldr r0, PTC_ADDR
 	strb r0, [r0, #PTC_TIR]
 	ldr r0, sysclk_addr
-	ldr r1, [r0,#0]
+	ldr r1, [r0]
 	add r1, r1, #1
-	str r1, [r0, #0]
+	str r1, [r0]
     pop r1
     pop r0
     movs pc, lr
-
+;inicia o ptc
 ptc_init:
 	push lr
 	push r0
@@ -247,19 +258,19 @@ ptc_init:
 	strb r0, [r1, #PTC_TIR]
 	bl ptc_start
 	pop pc
-
+;começa a contagem do ptc
 ptc_start:
 	ldr	r0, PTC_ADDR
 	mov	r1, #PTC_CMD_START
 	strb r1, [r0, #PTC_TCR]
 	mov	pc, lr
-
+;para a contagem do ptc
 ptc_stop:
 	ldr	r0, PTC_ADDR
 	mov	r1, #PTC_CMD_STOP
 	strb r1, [r0, #PTC_TCR]
 	mov	pc, lr
-
+;vai ler o valor de contagem do ptc e devolve-o em r0
 ptc_get_value:
 	ldr	r1, PTC_ADDR
 	ldrb r0, [r1, #PTC_TC]
@@ -267,24 +278,18 @@ ptc_get_value:
 
 PTC_ADDR:
 	.word PTC_ADDRESS
-
+;lê o valor do inport
 inport_read:
 	ldr	r1, inport_addr
-	ldrb r0, [r1, #0]
+	ldrb r0, [r1]
 	mov	pc, lr
 
 inport_addr:
 	.word INPORT_ADDRESS
-
-outport_init:
-    push lr
-    mov r0, #0xFF
-    bl outport_write
-    pop pc
-
+;escreve o valor de r0 no outport
 outport_write:
 	ldr	r1, outport_addr
-	strb r0, [r1, #0]
+	strb r0, [r1]
 	mov	pc, lr
 
 outport_addr:
